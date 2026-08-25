@@ -1,0 +1,64 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 40 33% 98%;          /* warm off-white */
+    --foreground: 222 25% 12%;         /* near-black blue-gray */
+    --card: 0 0% 100%;
+    --card-foreground: 222 25% 12%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 25% 12%;
+    --primary: 243 63% 55%;            /* deep indigo / royal blue */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 225 20% 94%;
+    --secondary-foreground: 222 25% 20%;
+    --muted: 225 18% 95%;
+    --muted-foreground: 222 12% 42%;
+    --accent: 38 92% 50%;              /* warm amber (subtle German-flag nod) */
+    --accent-foreground: 30 60% 14%;
+    --destructive: 0 72% 46%;          /* accessible red */
+    --destructive-foreground: 0 0% 100%;
+    --success: 160 84% 28%;            /* refined emerald */
+    --success-foreground: 0 0% 100%;
+    --warning: 32 90% 40%;
+    --warning-foreground: 0 0% 100%;
+    --border: 220 14% 90%;             /* subtle cool-gray borders */
+    --input: 220 14% 87%;
+    --ring: 243 63% 55%;
+    --radius: 0.75rem;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans;
+  }
+
+  ::selection {
+    background: hsl(var(--primary) / 0.15);
+  }
+}
+
+@layer utilities {
+  .focus-ring {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
