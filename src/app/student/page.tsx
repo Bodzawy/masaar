@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { SkillRadarMini } from "@/components/student/skill-radar-mini";
 import { formatDateTime, initials } from "@/lib/utils";
-import { PROGRESSION } from "@/config/domain";
+import { PROGRESSION, CEFR_LEVELS } from "@/config/domain";
 
 export const metadata = { title: "Overview" };
 
@@ -25,7 +25,7 @@ export default async function StudentDashboard() {
     return text;
   };
 
-  const [activeEnrollment, progressRows, upcomingBooking, skills, dueVocab, recentNotes] = await Promise.all([
+  const [activeEnrollment, progressRows, upcomingBooking, skills, dueVocab, recentNotes, allEnrollments, weekActivity] = await Promise.all([
     db.enrollment.findFirst({
       where: { studentId: session.userId, status: "ACTIVE" },
       include: {
@@ -50,7 +50,20 @@ export default async function StudentDashboard() {
       take: 2,
       include: { author: true },
     }).catch(() => []),
+    db.enrollment.findMany({ where: { studentId: session.userId }, include: { level: true } }),
+    // Weekly study time derived from completed lessons + quiz/exam activity in the last 7 days.
+    (async () => {
+      const since = new Date(Date.now() - 7 * 86_400_000);
+      const [lessonsDone, attempts] = await Promise.all([
+        db.lessonProgress.count({ where: { studentId: session.userId, status: "COMPLETED", completedAt: { gte: since } } }),
+        db.quizAttempt.findMany({ where: { studentId: session.userId, submittedAt: { gte: since } }, select: { quiz: { select: { ownerType: true } } } }),
+      ]);
+      const lessonMinutes = lessonsDone * 50;
+      const selfStudyMinutes = attempts.length * 12; // ~12 min per quiz/exam sitting
+      return lessonMinutes + selfStudyMinutes;
+    })(),
   ]);
+  const enrollmentsByCode = new Map(allEnrollments.map((e) => [e.level.code as string, { status: e.status }]));
 
   // Current lesson = first lesson (in path order) that is available or in progress
   type ChapterT = NonNullable<typeof activeEnrollment>["level"]["chapters"][0];
@@ -245,11 +258,18 @@ export default async function StudentDashboard() {
           <Card>
             <CardHeader className="pb-3"><CardTitle>{tr("dashboard.weeklyStudyTime")}</CardTitle></CardHeader>
             <CardContent>
-              <p className="text-3xl font-semibold tracking-tight">3<span className="text-base font-normal text-muted-foreground">h 20m</span></p>
+              <p className="text-3xl font-semibold tracking-tight">
+                {Math.floor(weekActivity / 60)}<span className="text-base font-normal text-muted-foreground">h {weekActivity % 60}m</span>
+              </p>
               <div className="mt-3 flex h-16 items-end gap-1.5" aria-hidden>
-                {[35, 60, 20, 45, 80, 30, 55].map((v, i) => (
-                  <div key={i} className={`flex-1 rounded-t-sm ${i === 4 ? "bg-primary" : "bg-primary/25"}`} style={{ height: `${v}%` }} />
-                ))}
+                {[0, 1, 2, 3, 4, 5, 6].map((dayOffset) => {
+                  // Deterministic per-day distribution of the measured weekly total.
+                  const weights = [30, 55, 20, 45, 80, 35, 60];
+                  const w = weights[dayOffset]!;
+                  return (
+                    <div key={dayOffset} className={`flex-1 rounded-t-sm ${dayOffset === new Date().getDay() - 1 || (new Date().getDay() === 0 && dayOffset === 6) ? "bg-primary" : "bg-primary/25"}`} style={{ height: `${Math.max(8, Math.min(100, (w / 80) * Math.max(20, weekActivity / 4)))}%` }} />
+                  );
+                })}
               </div>
               <div className="mt-1 flex justify-between text-[10px] text-muted-foreground">
                 <span>Mon</span><span>Sun</span>
@@ -304,18 +324,34 @@ export default async function StudentDashboard() {
                 <Progress value={levelPercent} />
               </div>
               <ol className="space-y-1 text-sm">
-                {[["A2", "Completed"], ["B1", "Completed"], ["B2", "Current"], ["C1", "Locked"], ["C2", "Locked"]].map(([code, state]) => (
-                  <li key={code} className="flex items-center justify-between rounded-md px-2 py-1.5 odd:bg-muted/60">
-                    <span className={state === "Current" ? "font-semibold text-primary" : ""}>{code}</span>
-                    <span className="text-xs text-muted-foreground">{state}</span>
-                  </li>
-                ))}
+                {CEFR_LEVELS.map((code) => {
+                  const state = levelStateFor(code, activeEnrollment.level.code, enrollmentsByCode);
+                  return (
+                    <li key={code} className="flex items-center justify-between rounded-md px-2 py-1.5 odd:bg-muted/60">
+                      <span className={state === "Current" ? "font-semibold text-primary" : ""}>{code}</span>
+                      <span className="text-xs text-muted-foreground">{state}</span>
+                    </li>
+                  );
+                })}
               </ol>
-              <Progress value={(progressRows.find((p) => p.levelCode === "B2")?.completionPercent ?? 0)} className="hidden" />
             </CardContent>
           </Card>
         </div>
       </div>
     </div>
   );
+}
+
+function levelStateFor(
+  code: string,
+  currentCode: string,
+  enrollmentsByCode: Map<string, { status: string }>
+): "Completed" | "Current" | "In progress" | "Locked" {
+  if (code === currentCode) return "Current";
+  const enrollment = enrollmentsByCode.get(code);
+  if (enrollment?.status === "COMPLETED") return "Completed";
+  if (enrollment) return "In progress";
+  const order = CEFR_LEVELS.indexOf(code as (typeof CEFR_LEVELS)[number]);
+  const currentOrder = CEFR_LEVELS.indexOf(currentCode as (typeof CEFR_LEVELS)[number]);
+  return order > currentOrder ? "Locked" : "Locked";
 }

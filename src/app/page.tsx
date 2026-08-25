@@ -24,12 +24,14 @@ export default async function LandingPage() {
             <BrandMark />
             <span className="text-lg font-semibold tracking-tight">{brand.name}</span>
           </div>
-          <nav className="flex items-center gap-3">
-            <LanguageSwitcher current={locale} />
-            <Button variant="ghost" asChild>
+          <nav className="flex items-center gap-2 sm:gap-3">
+            <div className="hidden sm:block">
+              <LanguageSwitcher current={locale} />
+            </div>
+            <Button variant="ghost" asChild className="px-3 sm:px-4">
               <Link href="/signin">{tr("common.signIn")}</Link>
             </Button>
-            <Button asChild>
+            <Button asChild className="px-3 sm:px-4">
               <Link href="/signup">{tr("common.signUp")}</Link>
             </Button>
           </nav>

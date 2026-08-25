@@ -66,35 +66,35 @@ export default async function BillingPage() {
         </Card>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid min-w-0 gap-6 lg:grid-cols-2">
         {/* Packages */}
-        <Card>
+        <Card className="min-w-0">
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-base"><Package className="h-4 w-4 text-primary" aria-hidden /> Plans & packages</CardTitle>
             <CardDescription>Purchase flows use the demo payment provider in this build.</CardDescription>
           </CardHeader>
           <CardContent className="grid gap-2.5">
             {packages.map((pkg) => (
-              <div key={pkg.id} className="flex items-center justify-between rounded-lg border border-border px-4 py-3">
-                <div>
+              <div key={pkg.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border px-4 py-3">
+                <div className="min-w-0 flex-1">
                   <p className="text-sm font-medium">{pkg.name}</p>
                   <p className="text-xs text-muted-foreground">{pkg.description}</p>
                 </div>
-                <Badge variant="secondary">{formatPrice(pkg.priceCents)}{pkg.kind === "SUBSCRIPTION" ? "/mo" : ""}</Badge>
+                <Badge variant="secondary" className="shrink-0">{formatPrice(pkg.priceCents)}{pkg.kind === "SUBSCRIPTION" ? "/mo" : ""}</Badge>
               </div>
             ))}
           </CardContent>
         </Card>
 
         {/* Credit ledger + payments */}
-        <div className="space-y-6">
-          <Card>
+        <div className="min-w-0 space-y-6">
+          <Card className="min-w-0">
             <CardHeader className="pb-3"><CardTitle className="text-base">Credit ledger</CardTitle></CardHeader>
             <CardContent>
               <ul className="space-y-1.5 text-sm">
                 {(wallet?.entries ?? []).map((e) => (
-                  <li key={e.id} className="flex items-center justify-between rounded-md px-2 py-1 odd:bg-muted/60">
-                    <span className="truncate text-xs">{REASON_LABELS[e.reason] ?? e.reason}</span>
+                  <li key={e.id} className="flex items-center justify-between gap-2 rounded-md px-2 py-1 odd:bg-muted/60">
+                    <span className="min-w-0 flex-1 truncate text-xs">{REASON_LABELS[e.reason] ?? e.reason}</span>
                     <span className={`font-medium tabular-nums ${e.delta > 0 ? "text-success" : "text-destructive"}`}>
                       {e.delta > 0 ? "+" : ""}{e.delta}
                     </span>
@@ -104,7 +104,7 @@ export default async function BillingPage() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="min-w-0">
             <CardHeader className="pb-3"><CardTitle className="text-base">Payment history</CardTitle></CardHeader>
             <CardContent>
               <ul className="space-y-1.5 text-sm">
