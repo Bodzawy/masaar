@@ -6,15 +6,15 @@ import { Badge } from "@/components/ui/badge";
 import { formatPrice, formatDate } from "@/lib/utils";
 import { CreditCard, Wallet, Receipt, Package } from "lucide-react";
 
-export const metadata = { title: "Billing" };
+export const metadata = { title: "Abrechnung" };
 
 const REASON_LABELS: Record<string, string> = {
-  SIGNUP_BONUS: "Welcome bonus",
-  PACKAGE_PURCHASE: "Package purchase",
-  LESSON_BOOKING: "Lesson booked",
-  LESSON_REFUND_RETAKE: "Refund (retake/cancellation)",
-  LESSON_REFUND_TEACHER_CANCEL: "Refund (teacher cancelled)",
-  ADMIN_ADJUSTMENT: "Support adjustment",
+  SIGNUP_BONUS: "Willkommensguthaben",
+  PACKAGE_PURCHASE: "Paketkauf",
+  LESSON_BOOKING: "Unterricht gebucht",
+  LESSON_REFUND_RETAKE: "Rückerstattung (Wiederholung/Storno)",
+  LESSON_REFUND_TEACHER_CANCEL: "Rückerstattung (Lehrkraft storniert)",
+  ADMIN_ADJUSTMENT: "Support-Buchung",
 };
 
 export default async function BillingPage() {
@@ -30,21 +30,21 @@ export default async function BillingPage() {
   return (
     <div className="container max-w-5xl space-y-6 animate-fade-in">
       <header>
-        <h1 className="text-2xl font-semibold tracking-tight">Billing</h1>
-        <p className="mt-1 text-sm text-muted-foreground">Subscriptions, lesson credits and payment history.</p>
+        <h1 className="text-2xl font-semibold tracking-tight">Abrechnung</h1>
+        <p className="mt-1 text-sm text-muted-foreground">Abos, Unterrichtsguthaben und Zahlungshistorie.</p>
       </header>
 
       <div className="grid gap-4 sm:grid-cols-3">
         <Card>
           <CardContent className="p-5">
-            <p className="flex items-center gap-1.5 text-xs uppercase tracking-wide text-muted-foreground"><Wallet className="h-3.5 w-3.5" aria-hidden /> Lesson credits</p>
+            <p className="flex items-center gap-1.5 text-xs uppercase tracking-wide text-muted-foreground"><Wallet className="h-3.5 w-3.5" aria-hidden /> Unterrichtsguthaben</p>
             <p className="mt-1.5 text-3xl font-semibold">{balance}</p>
-            <p className="text-xs text-muted-foreground">1 credit = one 50-min lesson</p>
+            <p className="text-xs text-muted-foreground">1 Guthaben = eine 50-Min.-Stunde</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-5">
-            <p className="flex items-center gap-1.5 text-xs uppercase tracking-wide text-muted-foreground"><CreditCard className="h-3.5 w-3.5" aria-hidden /> Subscription</p>
+            <p className="flex items-center gap-1.5 text-xs uppercase tracking-wide text-muted-foreground"><CreditCard className="h-3.5 w-3.5" aria-hidden /> Abo</p>
             {subscription ? (
               <>
                 <p className="mt-1.5 font-semibold">{subscription.planName}</p>
@@ -53,15 +53,15 @@ export default async function BillingPage() {
                 </p>
               </>
             ) : (
-              <p className="mt-1.5 text-sm text-muted-foreground">No active plan</p>
+              <p className="mt-1.5 text-sm text-muted-foreground">Kein aktives Abo</p>
             )}
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-5">
-            <p className="flex items-center gap-1.5 text-xs uppercase tracking-wide text-muted-foreground"><Receipt className="h-3.5 w-3.5" aria-hidden /> Spent this month</p>
+            <p className="flex items-center gap-1.5 text-xs uppercase tracking-wide text-muted-foreground"><Receipt className="h-3.5 w-3.5" aria-hidden /> Diesen Monat ausgegeben</p>
             <p className="mt-1.5 text-3xl font-semibold">{formatPrice(payments.filter((p) => p.status === "PAID").reduce((n, p) => n + p.amountCents, 0))}</p>
-            <p className="text-xs text-muted-foreground">{payments.filter((p) => p.status === "PAID").length} payments</p>
+            <p className="text-xs text-muted-foreground">{payments.filter((p) => p.status === "PAID").length} Zahlungen</p>
           </CardContent>
         </Card>
       </div>
@@ -70,8 +70,8 @@ export default async function BillingPage() {
         {/* Packages */}
         <Card className="min-w-0">
           <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-base"><Package className="h-4 w-4 text-primary" aria-hidden /> Plans & packages</CardTitle>
-            <CardDescription>Purchase flows use the demo payment provider in this build.</CardDescription>
+            <CardTitle className="flex items-center gap-2 text-base"><Package className="h-4 w-4 text-primary" aria-hidden /> Pläne & Pakete</CardTitle>
+            <CardDescription>Käufe nutzen in dieser Version den Demo-Zahlungsdienst.</CardDescription>
           </CardHeader>
           <CardContent className="grid gap-2.5">
             {packages.map((pkg) => (
@@ -89,7 +89,7 @@ export default async function BillingPage() {
         {/* Credit ledger + payments */}
         <div className="min-w-0 space-y-6">
           <Card className="min-w-0">
-            <CardHeader className="pb-3"><CardTitle className="text-base">Credit ledger</CardTitle></CardHeader>
+            <CardHeader className="pb-3"><CardTitle className="text-base">Guthaben-Journal</CardTitle></CardHeader>
             <CardContent>
               <ul className="space-y-1.5 text-sm">
                 {(wallet?.entries ?? []).map((e) => (
@@ -105,7 +105,7 @@ export default async function BillingPage() {
           </Card>
 
           <Card className="min-w-0">
-            <CardHeader className="pb-3"><CardTitle className="text-base">Payment history</CardTitle></CardHeader>
+            <CardHeader className="pb-3"><CardTitle className="text-base">Zahlungshistorie</CardTitle></CardHeader>
             <CardContent>
               <ul className="space-y-1.5 text-sm">
                 {payments.map((pay) => (
@@ -117,7 +117,7 @@ export default async function BillingPage() {
                     <span className="tabular-nums text-xs font-medium">{formatPrice(pay.amountCents)}</span>
                   </li>
                 ))}
-                {payments.length === 0 && <li className="text-xs text-muted-foreground">No payments yet.</li>}
+                {payments.length === 0 && <li className="text-xs text-muted-foreground">Noch keine Zahlungen.</li>}
               </ul>
             </CardContent>
           </Card>

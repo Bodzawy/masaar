@@ -13,9 +13,9 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const schema = z.object({
-  name: z.string().min(2, "Please enter your full name"),
-  email: z.string().email("Enter a valid email address"),
-  password: z.string().min(8, "At least 8 characters"),
+  name: z.string().min(2, "Bitte gib deinen vollständigen Namen ein."),
+  email: z.string().email("Bitte gib eine gültige E-Mail-Adresse ein."),
+  password: z.string().min(8, "Mindestens 8 Zeichen"),
 });
 type Values = z.infer<typeof schema>;
 
@@ -37,7 +37,7 @@ export function SignUpForm() {
     });
     const data = await res.json().catch(() => null);
     if (!res.ok || !data?.ok) {
-      setError(data?.error ?? "Could not create the account");
+      setError(data?.error ?? "Konto konnte nicht erstellt werden.");
       return;
     }
     router.replace(data.redirect ?? "/onboarding");
@@ -52,28 +52,28 @@ export function SignUpForm() {
         </Alert>
       )}
       <div className="space-y-1.5">
-        <Label htmlFor="name">Full name</Label>
+        <Label htmlFor="name">Vollständiger Name</Label>
         <Input id="name" autoComplete="name" placeholder="Lena Schmidt" aria-invalid={!!errors.name} {...register("name")} />
         {errors.name && <p className="text-xs text-destructive">{errors.name.message}</p>}
       </div>
       <div className="space-y-1.5">
-        <Label htmlFor="email">Email</Label>
-        <Input id="email" type="email" autoComplete="email" placeholder="you@example.com" aria-invalid={!!errors.email} {...register("email")} />
+        <Label htmlFor="email">E-Mail</Label>
+        <Input id="email" type="email" autoComplete="email" placeholder="name@beispiel.de" aria-invalid={!!errors.email} {...register("email")} />
         {errors.email && <p className="text-xs text-destructive">{errors.email.message}</p>}
       </div>
       <div className="space-y-1.5">
-        <Label htmlFor="password">Password</Label>
+        <Label htmlFor="password">Passwort</Label>
         <Input id="password" type="password" autoComplete="new-password" aria-invalid={!!errors.password} {...register("password")} />
         {errors.password && <p className="text-xs text-destructive">{errors.password.message}</p>}
       </div>
       <Button type="submit" className="w-full" disabled={isSubmitting}>
         {isSubmitting ? <Loader2 className="animate-spin" aria-hidden /> : <UserPlus aria-hidden />}
-        Create account
+        Konto erstellen
       </Button>
       <p className="text-center text-sm text-muted-foreground">
-        Already registered?{" "}
+        Schon registriert?{" "}
         <Link href="/signin" className="font-medium text-primary underline-offset-4 hover:underline">
-          Sign in
+          Anmelden
         </Link>
       </p>
     </form>

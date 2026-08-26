@@ -3,6 +3,7 @@ import { defineConfig } from "@playwright/test";
 export default defineConfig({
   globalSetup: "./e2e/global-setup.ts",
   testDir: "./e2e",
+  workers: 1, // Serial gegen gemeinsame Demo-Datenbank – deterministische Läufe
   timeout: 90_000,
   retries: process.env.CI ? 1 : 0,
   use: { baseURL: "http://localhost:3000", trace: "retain-on-failure" },

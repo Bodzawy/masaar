@@ -38,7 +38,7 @@ export default async function CaseDetailPage({ params }: { params: Promise<{ cas
     <div className="container max-w-4xl space-y-6 animate-fade-in">
       <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground">
         <Link href="/admin/reports" className="inline-flex items-center gap-1 hover:text-foreground">
-          <ArrowLeft className="h-3.5 w-3.5 rtl:rotate-180" aria-hidden /> Reports
+          <ArrowLeft className="h-3.5 w-3.5 rtl:rotate-180" aria-hidden /> Meldungen
         </Link>
       </nav>
 
@@ -47,14 +47,14 @@ export default async function CaseDetailPage({ params }: { params: Promise<{ cas
         <Badge variant={reportCase.status === "OPEN" ? "destructive" : reportCase.status === "CLOSED" ? "muted" : "warning"}>
           {reportCase.status.replaceAll("_", " ").toLowerCase()}
         </Badge>
-        <time className="ms-auto text-xs text-muted-foreground">Opened {formatDateTime(reportCase.createdAt)}</time>
+        <time className="ms-auto text-xs text-muted-foreground">Eröffnet {formatDateTime(reportCase.createdAt)}</time>
       </header>
 
       {/* Lifecycle progress */}
       <ol className="flex flex-wrap items-center gap-1.5 text-[11px] font-medium uppercase tracking-wide" aria-label="Case lifecycle">
         {LIFECYCLE.map((s, i) => (
           <li key={s} className="flex items-center gap-1.5">
-            <span className={`rounded-full px-2.5 py-1 ${i <= stage ? "bg-primary text-white" : "bg-muted text-muted-foreground"}`}>{s.replaceAll("_", " ")}</span>
+            <span className={`rounded-full px-2.5 py-1 ${i <= stage ? "bg-primary text-white" : "bg-muted text-muted-foreground"}`}>{({OPEN:"Offen",UNDER_REVIEW:"In Prüfung",TEACHER_RESPONSE:"Antwort der Lehrkraft",DECIDED:"Entschieden",CLOSED:"Geschlossen"} as Record<string,string>)[s] ?? s}</span>
             {i < LIFECYCLE.length - 1 && <span className="text-muted-foreground" aria-hidden>·</span>}
           </li>
         ))}
@@ -63,30 +63,30 @@ export default async function CaseDetailPage({ params }: { params: Promise<{ cas
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Report */}
         <Card>
-          <CardHeader className="pb-3"><CardTitle className="text-base">Report</CardTitle></CardHeader>
+          <CardHeader className="pb-3"><CardTitle className="text-base">Meldung</CardTitle></CardHeader>
           <CardContent className="space-y-3 text-sm">
             <div>
-              <p className="text-xs uppercase tracking-wide text-muted-foreground">Reason</p>
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">Grund</p>
               <p className="font-medium">{reportCase.reason.replaceAll("_", " ").toLowerCase()}</p>
             </div>
             <div>
-              <p className="text-xs uppercase tracking-wide text-muted-foreground">Parties</p>
-              <p>{reportCase.opener.name} (student) vs {reportCase.teacher.name} (teacher)</p>
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">Beteiligte</p>
+              <p>{reportCase.opener.name} (Lernende:r) gegen {reportCase.teacher.name} (Lehrkraft)</p>
               {reportCase.booking && <p className="text-xs text-muted-foreground mt-0.5">Lesson: {reportCase.booking.lesson.titleDe} · {formatDateTime(reportCase.booking.scheduledAt)}</p>}
             </div>
             <div>
-              <p className="text-xs uppercase tracking-wide text-muted-foreground">Description</p>
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">Beschreibung</p>
               <p className="leading-relaxed">{reportCase.description}</p>
             </div>
             {reportCase.teacherResponse && (
               <div>
-                <p className="flex items-center gap-1 text-xs uppercase tracking-wide text-muted-foreground"><MessageSquare className="h-3 w-3" aria-hidden /> Teacher response</p>
+                <p className="flex items-center gap-1 text-xs uppercase tracking-wide text-muted-foreground"><MessageSquare className="h-3 w-3" aria-hidden /> Antwort der Lehrkraft</p>
                 <p className="leading-relaxed">{reportCase.teacherResponse}</p>
               </div>
             )}
             {reportCase.decision && (
               <div className="rounded-md bg-muted px-3 py-2">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">Decision</p>
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">Entscheidung</p>
                 <p className="font-medium leading-relaxed">{reportCase.decision}</p>
               </div>
             )}
@@ -96,11 +96,11 @@ export default async function CaseDetailPage({ params }: { params: Promise<{ cas
         {/* Evidence + actions */}
         <div className="space-y-6">
           <Card>
-            <CardHeader className="pb-3"><CardTitle className="flex items-center gap-2 text-base"><FileSearch className="h-4 w-4 text-primary" aria-hidden /> Evidence</CardTitle></CardHeader>
+            <CardHeader className="pb-3"><CardTitle className="flex items-center gap-2 text-base"><FileSearch className="h-4 w-4 text-primary" aria-hidden /> Beweismittel</CardTitle></CardHeader>
             <CardContent>
               {!canSeeEvidence ? (
                 <p className="flex items-center gap-2 rounded-md bg-muted px-3 py-3 text-sm text-muted-foreground">
-                  <Lock className="h-4 w-4 shrink-0" aria-hidden /> Evidence is restricted to moderation roles.
+                  <Lock className="h-4 w-4 shrink-0" aria-hidden /> Beweismittel ist der Moderation vorbehalten.
                 </p>
               ) : (
                 <ul className="space-y-2 text-sm">
@@ -110,7 +110,7 @@ export default async function CaseDetailPage({ params }: { params: Promise<{ cas
                       <p className="mt-1.5 whitespace-pre-line text-xs leading-relaxed text-muted-foreground">{ev.content}</p>
                     </li>
                   ))}
-                  {reportCase.evidence.length === 0 && <li className="text-xs text-muted-foreground">No evidence attached.</li>}
+                  {reportCase.evidence.length === 0 && <li className="text-xs text-muted-foreground">Kein Beweismittel angehängt.</li>}
                   {reportCase.booking?.liveSession && (
                     <li className="rounded-lg border border-border bg-background p-3">
                       <Badge variant="muted">attendance record</Badge>
@@ -129,7 +129,7 @@ export default async function CaseDetailPage({ params }: { params: Promise<{ cas
           {/* Moderator actions (server actions) */}
           {reportCase.status !== "CLOSED" && (
             <Card>
-              <CardHeader className="pb-3"><CardTitle className="flex items-center gap-2 text-base"><Gavel className="h-4 w-4 text-accent" aria-hidden /> Moderation actions</CardTitle></CardHeader>
+              <CardHeader className="pb-3"><CardTitle className="flex items-center gap-2 text-base"><Gavel className="h-4 w-4 text-accent" aria-hidden /> Moderations-Aktionen</CardTitle></CardHeader>
               <CardContent className="space-y-3">
                 {(["START_REVIEW", "REQUEST_TEACHER_RESPONSE"] as const).map((action) => (
                   <form
@@ -142,7 +142,7 @@ export default async function CaseDetailPage({ params }: { params: Promise<{ cas
                   >
                     <input type="hidden" name="note" value="" />
                     <Button type="submit" size="sm" variant="outline" disabled={stage >= LIFECYCLE.indexOf(action === "START_REVIEW" ? "UNDER_REVIEW" : "TEACHER_RESPONSE")}>
-                      {action === "START_REVIEW" ? "Start review" : "Request teacher response"}
+                      {action === "START_REVIEW" ? "Prüfung beginnen" : "Stellungnahme anfordern"}
                     </Button>
                   </form>
                 ))}
@@ -158,10 +158,10 @@ export default async function CaseDetailPage({ params }: { params: Promise<{ cas
                   }}
                   className="space-y-2 border-t border-border pt-4"
                 >
-                  <Textarea name="decision" rows={2} required minLength={5} placeholder="Decision (e.g. warning issued; credit refunded…)" aria-label="Decision" />
-                  <Textarea name="note" rows={2} placeholder="Moderator notes (optional)" aria-label="Moderator notes" />
+                  <Textarea name="decision" rows={2} required minLength={5} placeholder="Entscheidung (z. B. Verwarnung erteilt…)" aria-label="Entscheidung" />
+                  <Textarea name="note" rows={2} placeholder="Notizen der Moderation (optional)" aria-label="Notizen" />
                   <div className="flex justify-end gap-2">
-                    <Button type="submit" size="sm">Record decision</Button>
+                    <Button type="submit" size="sm">Entscheidung erfassen</Button>
                   </div>
                 </form>
                 <form
@@ -172,7 +172,7 @@ export default async function CaseDetailPage({ params }: { params: Promise<{ cas
                   className="border-t border-border pt-3"
                 >
                   <Button type="submit" size="sm" variant="ghost" className="w-full" disabled={reportCase.status !== "DECIDED"}>
-                    Close case
+                    Fall schließen
                   </Button>
                 </form>
               </CardContent>
@@ -181,7 +181,7 @@ export default async function CaseDetailPage({ params }: { params: Promise<{ cas
 
           {/* Audit trail */}
           <Card>
-            <CardHeader className="pb-3"><CardTitle className="text-base">Audit trail</CardTitle><CardDescription>Every action on this case.</CardDescription></CardHeader>
+            <CardHeader className="pb-3"><CardTitle className="text-base">Audit-Protokoll</CardTitle><CardDescription>Jede Aktion zu diesem Fall.</CardDescription></CardHeader>
             <CardContent>
               <ol className="space-y-2 text-sm">
                 {reportCase.actions.map((a) => (

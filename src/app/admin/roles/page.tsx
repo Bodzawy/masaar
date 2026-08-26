@@ -21,12 +21,12 @@ export default async function RolesPage() {
       <header>
         <h1 className="flex items-center gap-2 text-2xl font-semibold tracking-tight"><KeyRound className="h-5 w-5 text-primary" aria-hidden /> Roles & Permissions</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Permission matrix enforced by middleware and server actions. You are signed in as {session.role}.
+          Berechtigungsmatrix, erzwungen durch Middleware und Server Actions. Angemeldet als {session.role}.
         </p>
       </header>
 
       <Card>
-        <CardHeader className="pb-3"><CardTitle className="text-base">Matrix</CardTitle><CardDescription>Source of truth: <code className="rounded bg-muted px-1.5 py-0.5 text-xs">src/config/domain.ts</code>.</CardDescription></CardHeader>
+        <CardHeader className="pb-3"><CardTitle className="text-base">Matrix</CardTitle><CardDescription>Datenquelle: <code className="rounded bg-muted px-1.5 py-0.5 text-xs">src/config/domain.ts</code>.</CardDescription></CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[720px] text-sm">
@@ -62,7 +62,7 @@ export default async function RolesPage() {
       </Card>
 
       <Card>
-        <CardHeader className="pb-3"><CardTitle className="text-base">Roles in database</CardTitle></CardHeader>
+        <CardHeader className="pb-3"><CardTitle className="text-base">Rollen in der Datenbank</CardTitle></CardHeader>
         <CardContent className="flex flex-wrap gap-2">
           {rolesInDb.map((r) => <Badge key={r.id} variant={ROLE_PERMISSIONS[r.key].length > 0 ? "default" : "secondary"}>{r.name}</Badge>)}
         </CardContent>

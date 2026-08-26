@@ -114,6 +114,7 @@ model StudentProfile {
   expectedLevel           CEFRLevel?
   preferredStudyTimes     String?
   studyPreference         String?
+  alphabetFamiliarity     String? // "none" | "basic" | "fluent" – kann der Lernende das arabische Alphabet lesen?
   placementSuggestedLevel CEFRLevel?
   placementTakenAt        DateTime?
   onboardedAt             DateTime?
@@ -980,12 +981,12 @@ model NotificationPreference {
 // ────────────────────────────── Vocabulary ──────────────────────────────
 
 model VocabularyItem {
-  id            String  @id @default(cuid())
-  word          String
-  translationEn String
-  exampleDe     String
-  exampleEn     String
-  partOfSpeech  String
+  id                 String @id @default(cuid())
+  word               String // Zielwort (Arabisch, mit Harakat)
+  translation        String // Bedeutung (Deutsch)
+  exampleTarget      String // Beispielsatz (Arabisch)
+  exampleTranslation String // Beispielsatz (Deutsch)
+  partOfSpeech       String
   levelCode     CEFRLevel
   chapterId     String?
 

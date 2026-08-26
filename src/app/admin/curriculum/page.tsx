@@ -34,7 +34,7 @@ export default async function CurriculumPage() {
       <header>
         <h1 className="text-2xl font-semibold tracking-tight">Curriculum</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          The platform-owned learning sequence. Editing is restricted to Academic Admins ({session.role}).
+          Die plattform-eigene Lernfolge. Bearbeitung nur durch Academic Admins ({session.role}).
         </p>
       </header>
 
@@ -50,7 +50,7 @@ export default async function CurriculumPage() {
                   <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-sm font-bold text-primary">{code}</span>
                   <div className="min-w-0 flex-1">
                     <CardTitle className="text-base">{LEVEL_TITLES[code]}</CardTitle>
-                    <CardDescription>{lessonCount} lessons · {level.chapters.length} chapters</CardDescription>
+                    <CardDescription>{lessonCount} Lektionen · {level.chapters.length} Kapitel</CardDescription>
                   </div>
                 </div>
               </CardHeader>
@@ -61,7 +61,7 @@ export default async function CurriculumPage() {
                       <div className="flex flex-wrap items-center gap-2">
                         <LibraryBig className="h-3.5 w-3.5 text-muted-foreground" aria-hidden />
                         <span className="text-sm font-medium">{ch.titleDe}</span>
-                        {ch.chapterExam ? <Badge variant="secondary">exam</Badge> : <Badge variant="muted"><Lock className="me-1 h-3 w-3" />no exam</Badge>}
+                        {ch.chapterExam ? <Badge variant="secondary">exam</Badge> : <Badge variant="muted"><Lock className="me-1 h-3 w-3" />keine Prüfung</Badge>}
                       </div>
                       <ul className="mt-1 space-y-0.5 ps-5">
                         {ch.lessons.map((l) => (
@@ -77,7 +77,7 @@ export default async function CurriculumPage() {
                   ))}
                 </ul>
                 <Link href="#" className="mt-3 inline-block text-xs font-medium text-primary hover:underline" aria-disabled>
-                  Edit level content (editor UI ships next iteration)
+                  Inhalt bearbeiten (Editor folgt in einer nächsten Iteration)
                 </Link>
               </CardContent>
             </Card>

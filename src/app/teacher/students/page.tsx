@@ -4,7 +4,7 @@ import { db } from "@/lib/db";
 import { Card, CardContent } from "@/components/ui/card";
 import { UserAvatar } from "@/components/ui/avatar";
 
-export const metadata = { title: "Students" };
+export const metadata = { title: "Lernende" };
 
 export default async function TeacherStudentsPage() {
   const session = await requireRole("TEACHER");
@@ -27,12 +27,12 @@ export default async function TeacherStudentsPage() {
   return (
     <div className="container max-w-4xl space-y-6 animate-fade-in">
       <header>
-        <h1 className="text-2xl font-semibold tracking-tight">Students</h1>
-        <p className="mt-1 text-sm text-muted-foreground">Everyone you have taught, with their latest lesson.</p>
+        <h1 className="text-2xl font-semibold tracking-tight">Lernende</h1>
+        <p className="mt-1 text-sm text-muted-foreground">Alle von dir unterrichteten Lernenden mit ihrer letzten Lektion.</p>
       </header>
 
       {seen.size === 0 ? (
-        <Card><CardContent className="p-10 text-center text-sm text-muted-foreground">No students yet.</CardContent></Card>
+        <Card><CardContent className="p-10 text-center text-sm text-muted-foreground">Noch keine Lernenden.</CardContent></Card>
       ) : (
         <ul className="grid gap-3 sm:grid-cols-2">
           {[...seen.entries()].map(([id, s]) => (
@@ -42,8 +42,8 @@ export default async function TeacherStudentsPage() {
                   <UserAvatar name={s.name} color={s.color} />
                   <div className="min-w-0 flex-1">
                     <p className="truncate font-medium">{s.name}</p>
-                    <p className="truncate text-xs text-muted-foreground">Last: {s.lastLesson}</p>
-                    <p className="text-xs text-muted-foreground">{s.count} lesson{s.count > 1 ? "s" : ""}</p>
+                    <p className="truncate text-xs text-muted-foreground">Letzte Lektion: {s.lastLesson}</p>
+                    <p className="text-xs text-muted-foreground">{s.count} Einheiten</p>
                   </div>
                 </div>
               </Link>

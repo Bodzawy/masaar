@@ -13,8 +13,8 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const schema = z.object({
-  email: z.string().email("Enter a valid email address"),
-  password: z.string().min(8, "At least 8 characters"),
+  email: z.string().email("Bitte gib eine gültige E-Mail-Adresse ein."),
+  password: z.string().min(8, "Mindestens 8 Zeichen"),
 });
 type Values = z.infer<typeof schema>;
 
@@ -36,7 +36,7 @@ export function SignInForm({ nextPath }: { nextPath?: string }) {
     });
     const data = await res.json().catch(() => null);
     if (!res.ok || !data?.ok) {
-      setError(data?.error ?? "Invalid email or password");
+      setError(data?.error ?? "E-Mail oder Passwort ist falsch.");
       return;
     }
     router.replace(nextPath && nextPath.startsWith("/") ? nextPath : data.redirect ?? "/");
@@ -51,23 +51,23 @@ export function SignInForm({ nextPath }: { nextPath?: string }) {
         </Alert>
       )}
       <div className="space-y-1.5">
-        <Label htmlFor="email">Email</Label>
+        <Label htmlFor="email">E-Mail</Label>
         <Input id="email" type="email" autoComplete="email" placeholder="lena@demo.de" aria-invalid={!!errors.email} {...register("email")} />
         {errors.email && <p className="text-xs text-destructive">{errors.email.message}</p>}
       </div>
       <div className="space-y-1.5">
-        <Label htmlFor="password">Password</Label>
+        <Label htmlFor="password">Passwort</Label>
         <Input id="password" type="password" autoComplete="current-password" placeholder="••••••••" aria-invalid={!!errors.password} {...register("password")} />
         {errors.password && <p className="text-xs text-destructive">{errors.password.message}</p>}
       </div>
       <Button type="submit" className="w-full" disabled={isSubmitting}>
         {isSubmitting ? <Loader2 className="animate-spin" aria-hidden /> : <LogIn aria-hidden />}
-        Sign in
+        Anmelden
       </Button>
       <p className="text-center text-sm text-muted-foreground">
-        No account yet?{" "}
+        Noch kein Konto?{" "}
         <Link href="/signup" className="font-medium text-primary underline-offset-4 hover:underline">
-          Create one
+          Jetzt erstellen
         </Link>
       </p>
     </form>
@@ -75,12 +75,12 @@ export function SignInForm({ nextPath }: { nextPath?: string }) {
 }
 
 export const DEMO_ACCOUNTS = [
-  { label: "Student — Lena Schmidt", role: "student", email: "lena.schmidt@demo.deutschpath.dev", desc: "B2 · Chapter 1 · Lesson 3" },
-  { label: "Teacher — Stefan Brinkmann", role: "teacher", email: "stefan.brinkmann@demo.deutschpath.dev", desc: "Senior · online" },
-  { label: "Super Admin", role: "admin", email: "admin@demo.deutschpath.dev", desc: "Full access" },
-  { label: "Academic Admin", role: "admin", email: "academic@demo.deutschpath.dev", desc: "Curriculum & certificates" },
-  { label: "Moderator", role: "admin", email: "moderator@demo.deutschpath.dev", desc: "Reports & cases" },
-  { label: "Teacher Manager", role: "admin", email: "manager@demo.deutschpath.dev", desc: "Onboarding & retakes" },
+  { label: "Lernende – Lena Schmidt", role: "student", email: "lena.schmidt@demo.deutschpath.dev", desc: "B2 · Kapitel 1 · Lektion 3" },
+  { label: "Lehrkraft – Stefan Brinkmann", role: "teacher", email: "omar.elsayed@demo.deutschpath.dev", desc: "Senior · online" },
+  { label: "Super-Admin", role: "admin", email: "admin@demo.deutschpath.dev", desc: "Full access" },
+  { label: "Academic Admin", role: "admin", email: "academic@demo.deutschpath.dev", desc: "Curriculum & Zertifikate" },
+  { label: "Moderation", role: "admin", email: "moderator@demo.deutschpath.dev", desc: "Meldungen & Fälle" },
+  { label: "Teacher Manager", role: "admin", email: "manager@demo.deutschpath.dev", desc: "Onboarding & Wiederholungen" },
 ] as const;
 
 export function DemoAccountSelector() {
@@ -107,7 +107,7 @@ export function DemoAccountSelector() {
   return (
     <div className="rounded-lg border border-dashed border-accent/60 bg-accent/10 p-4" data-testid="demo-account-selector">
       <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-accent-foreground">
-        <GraduationCap className="h-4 w-4" aria-hidden /> Demo accounts (development only) — password: demo1234!
+        <GraduationCap className="h-4 w-4" aria-hidden /> Demo-Konten (nur Entwicklung) – Passwort: demo1234!
       </p>
       <ul className="mt-3 grid gap-1.5 sm:grid-cols-2">
         {DEMO_ACCOUNTS.map((a) => (
@@ -118,7 +118,7 @@ export function DemoAccountSelector() {
               disabled={busy !== null}
               className="w-full rounded-md border border-border bg-card px-3 py-2 text-start text-sm shadow-xs transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
             >
-              <span className="block font-medium">{busy === a.email ? "Signing in…" : a.label}</span>
+              <span className="block font-medium">{busy === a.email ? "Anmeldung läuft…" : a.label}</span>
               <span className="block text-xs text-muted-foreground">{a.desc}</span>
             </button>
           </li>

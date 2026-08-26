@@ -9,7 +9,7 @@ import { Heart, Star, Clock3, Zap, CalendarPlus } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
 import type { TeacherRankKey } from "@/config/domain";
 
-export const metadata = { title: "Favorite Teachers" };
+export const metadata = { title: "Favoriten" };
 
 export default async function FavoritesPage() {
   const session = await requireRole("STUDENT");
@@ -28,16 +28,16 @@ export default async function FavoritesPage() {
   return (
     <div className="container max-w-4xl space-y-6 animate-fade-in">
       <header>
-        <h1 className="text-2xl font-semibold tracking-tight">Favorite Teachers</h1>
-        <p className="mt-1 text-sm text-muted-foreground">Favorites who are online appear first in Find a Teacher.</p>
+        <h1 className="text-2xl font-semibold tracking-tight">Favoriten</h1>
+        <p className="mt-1 text-sm text-muted-foreground">Online-Favoriten erscheinen in „Lehrkraft finden“ zuerst.</p>
       </header>
 
       {favorites.length === 0 ? (
         <Card><CardContent className="flex flex-col items-center p-10 text-center">
           <Heart className="h-8 w-8 text-muted-foreground/50" aria-hidden />
-          <p className="mt-3 font-medium">No favorites yet</p>
-          <p className="mt-1 text-sm text-muted-foreground">Tap the heart on any teacher card to save them here.</p>
-          <Button size="sm" className="mt-4" asChild><Link href="/student/teachers">Browse teachers</Link></Button>
+          <p className="mt-3 font-medium">Noch keine Favoriten</p>
+          <p className="mt-1 text-sm text-muted-foreground">Tippe auf das Herz auf einer Lehrkraft-Karte.</p>
+          <Button size="sm" className="mt-4" asChild><Link href="/student/teachers">Lehrkräfte ansehen</Link></Button>
         </CardContent></Card>
       ) : (
         <ul className="grid gap-3 sm:grid-cols-2">

@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Wallet, Clock3, Landmark } from "lucide-react";
 import { formatDate, formatPrice } from "@/lib/utils";
 
-export const metadata = { title: "Earnings" };
+export const metadata = { title: "Verdienst" };
 
 export default async function EarningsPage() {
   const session = await requireRole("TEACHER");
@@ -25,28 +25,28 @@ export default async function EarningsPage() {
   return (
     <div className="container max-w-4xl space-y-6 animate-fade-in">
       <header>
-        <h1 className="text-2xl font-semibold tracking-tight">Earnings</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Verdienst</h1>
         <p className="mt-1 text-sm text-muted-foreground">{BOOKING_RULES.currency} · demo payout schedule: monthly.</p>
       </header>
 
       <div className="grid gap-4 sm:grid-cols-3">
         <Card><CardContent className="p-5">
-          <p className="flex items-center gap-1.5 text-xs uppercase tracking-wide text-muted-foreground"><Wallet className="h-3.5 w-3.5" aria-hidden /> Available now</p>
+          <p className="flex items-center gap-1.5 text-xs uppercase tracking-wide text-muted-foreground"><Wallet className="h-3.5 w-3.5" aria-hidden /> Jetzt verfügbar</p>
           <p className="mt-1.5 text-2xl font-semibold">{formatPrice(availableCents)}</p>
         </CardContent></Card>
         <Card><CardContent className="p-5">
-          <p className="flex items-center gap-1.5 text-xs uppercase tracking-wide text-muted-foreground"><Clock3 className="h-3.5 w-3.5" aria-hidden /> Pending clearance</p>
+          <p className="flex items-center gap-1.5 text-xs uppercase tracking-wide text-muted-foreground"><Clock3 className="h-3.5 w-3.5" aria-hidden /> In Klärung</p>
           <p className="mt-1.5 text-2xl font-semibold">{formatPrice(pendingPayoutsCents)}</p>
         </CardContent></Card>
         <Card><CardContent className="p-5">
-          <p className="flex items-center gap-1.5 text-xs uppercase tracking-wide text-muted-foreground"><Landmark className="h-3.5 w-3.5" aria-hidden /> Lifetime</p>
+          <p className="flex items-center gap-1.5 text-xs uppercase tracking-wide text-muted-foreground"><Landmark className="h-3.5 w-3.5" aria-hidden /> Gesamtverdienst</p>
           <p className="mt-1.5 text-2xl font-semibold">{formatPrice(lifetimeCents)}</p>
-          <p className="text-xs text-muted-foreground">{completedBookings.length} completed lessons</p>
+          <p className="text-xs text-muted-foreground">{completedBookings.length} abgeschlossene Einheiten</p>
         </CardContent></Card>
       </div>
 
       <Card>
-        <CardHeader className="pb-3"><CardTitle className="text-base">Payouts</CardTitle></CardHeader>
+        <CardHeader className="pb-3"><CardTitle className="text-base">Auszahlungen</CardTitle></CardHeader>
         <CardContent>
           <ul className="space-y-1.5 text-sm">
             {payouts.map((p) => (
@@ -56,7 +56,7 @@ export default async function EarningsPage() {
                 <Badge variant={p.status === "PAID" ? "success" : p.status === "REJECTED" ? "destructive" : "warning"}>{p.status.toLowerCase()}</Badge>
               </li>
             ))}
-            {payouts.length === 0 && <li className="text-xs text-muted-foreground">No payouts yet.</li>}
+            {payouts.length === 0 && <li className="text-xs text-muted-foreground">Noch keine Auszahlungen.</li>}
           </ul>
         </CardContent>
       </Card>

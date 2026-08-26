@@ -1,10 +1,10 @@
 "use client";
 
 import { createContext, useContext } from "react";
-import type { Dict } from "@/lib/i18n/en";
+import type { Dict } from "@/lib/i18n/de";
 import { translate, type Translator } from "@/lib/i18n";
 
-const I18nContext = createContext<{ locale: string; dict: Dict }>({ locale: "en", dict: {} as Dict });
+const I18nContext = createContext<{ locale: string; dict: Dict }>({ locale: "de", dict: {} as Dict });
 
 export function I18nProvider({ locale, dict, children }: { locale: string; dict: Dict; children: React.ReactNode }) {
   return <I18nContext.Provider value={{ locale, dict }}>{children}</I18nContext.Provider>;

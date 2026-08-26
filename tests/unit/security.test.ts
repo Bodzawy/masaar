@@ -60,8 +60,8 @@ describe("moderation lifecycle rules", () => {
   });
 
   it("uses honest certificate wording", () => {
-    expect(CERTIFICATE_RULES.issuerLine).toMatch(/platform-issued/i);
-    expect(CERTIFICATE_RULES.disclaimer).toMatch(/not an externally accredited/i);
+    expect(CERTIFICATE_RULES.issuerLine).toMatch(/Plattform-eigenes/i);
+    expect(CERTIFICATE_RULES.disclaimer).toMatch(/nicht um eine extern akkreditierte Prüfung/i);
   });
 
   it("defines the full teacher onboarding pipeline", () => {

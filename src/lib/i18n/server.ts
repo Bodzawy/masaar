@@ -1,13 +1,13 @@
 import "server-only";
 import { cookies } from "next/headers";
 
-export type Locale = "en" | "ar";
-export const LOCALES: Locale[] = ["en", "ar"];
-export const DEFAULT_LOCALE: Locale = "en";
+export type Locale = "de" | "en";
+export const LOCALES: Locale[] = ["de", "en"];
+export const DEFAULT_LOCALE: Locale = "de";
 const COOKIE = "dp_locale";
 
 export function isLocale(v: string | undefined): v is Locale {
-  return v === "en" || v === "ar";
+  return v === "de" || v === "en";
 }
 
 export async function getLocale(): Promise<Locale> {
@@ -21,6 +21,10 @@ export async function setLocaleCookie(locale: Locale): Promise<void> {
   jar.set(COOKIE, locale, { path: "/", maxAge: 60 * 60 * 24 * 365, sameSite: "lax" });
 }
 
-export function dirFor(locale: Locale): "ltr" | "rtl" {
-  return locale === "ar" ? "rtl" : "ltr";
+/**
+ * The UI shell is German-first and therefore always LTR.
+ * Arabic CONTENT is rendered in dedicated RTL islands via <ArabicText>.
+ */
+export function dirFor(_locale: Locale): "ltr" {
+  return "ltr";
 }

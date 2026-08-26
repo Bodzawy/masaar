@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Award, ShieldAlert, CalendarClock } from "lucide-react";
 
-export const metadata = { title: "Final level exam" };
+export const metadata = { title: "Abschlussprüfung" };
 
 export default async function FinalExamPage() {
   const session = await requireRole("STUDENT");
@@ -17,7 +17,7 @@ export default async function FinalExamPage() {
     include: { level: true },
   });
   if (!enrollment) {
-    return <p className="py-20 text-center text-sm text-muted-foreground">No active enrollment.</p>;
+    return <p className="py-20 text-center text-sm text-muted-foreground">Keine aktive Einschreibung.</p>;
   }
   const access = await assertLevelExamAccess(session.userId, enrollment.levelId);
 
@@ -26,7 +26,7 @@ export default async function FinalExamPage() {
       <header className="flex items-center gap-3">
         <Award className="h-7 w-7 text-accent" aria-hidden />
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Final exam — {enrollment.level.code}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Abschlussprüfung – {enrollment.level.code}</h1>
           <p className="text-sm text-muted-foreground">{enrollment.level.title}</p>
         </div>
       </header>
@@ -45,13 +45,13 @@ export default async function FinalExamPage() {
         <>
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-base"><CalendarClock className="h-4 w-4 text-primary" aria-hidden /> Schedule your exam</CardTitle>
-              <CardDescription>Choose an available slot. The exam takes about 60 minutes.</CardDescription>
+              <CardTitle className="flex items-center gap-2 text-base"><CalendarClock className="h-4 w-4 text-primary" aria-hidden /> Prüfung planen</CardTitle>
+              <CardDescription>Wähle einen freien Termin. Die Prüfung dauert etwa 60 Minuten.</CardDescription>
             </CardHeader>
             <CardContent>
               <p className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
-                Scheduling opens once the proctoring partner is connected. In this demo build you can preview all
-                requirements below; taking the final exam uses a clearly labeled demo proctoring placeholder.
+                Die Terminbuchung öffnet, sobald der Aufsichtsdienst verbunden ist. In dieser Demo kannst du alle
+                Anforderungen unten einsehen; die Abschlussprüfung nutzt einen klar gekennzeichneten Demo-Platzhalter.
               </p>
             </CardContent>
           </Card>
@@ -72,7 +72,7 @@ export default async function FinalExamPage() {
               </ul>
               <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
                 Integration boundary: real secure proctoring requires vendor credentials and contractual setup.
-                Nothing on this page simulates being “connected”.
+                Nichts auf dieser Seite simuliert eine echte Verbindung.
               </p>
             </CardContent>
           </Card>

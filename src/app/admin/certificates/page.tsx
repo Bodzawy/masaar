@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { BadgeCheck } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 
-export const metadata = { title: "Certificates" };
+export const metadata = { title: "Zertifikate" };
 
 export default async function CertificatesPage() {
   const session = await requireRole("ACADEMIC_ADMIN", "SUPER_ADMIN");
@@ -22,7 +22,7 @@ export default async function CertificatesPage() {
     <div className="container max-w-4xl space-y-6 animate-fade-in">
       <header>
         <h1 className="text-2xl font-semibold tracking-tight">Certificates</h1>
-        <p className="mt-1 text-sm text-muted-foreground">Platform-issued level completion certificates. Revocations are audited.</p>
+        <p className="mt-1 text-sm text-muted-foreground">Plattform-eigene Niveau-Abschlusszertifikate. Widerrufe werden auditert.</p>
       </header>
 
       <ul className="space-y-2.5">
@@ -51,21 +51,21 @@ export default async function CertificatesPage() {
                       name="reason"
                       required
                       minLength={10}
-                      placeholder="Revocation reason…"
-                      aria-label={`Reason for revoking ${cert.serial}`}
+                      placeholder="Grund des Widerrufs…"
+                      aria-label={`Grund für Widerruf von ${cert.serial}`}
                       className="h-9 flex-1 rounded-md border border-input bg-card px-3 text-sm sm:w-56"
                     />
                     {/* Confirmation comes from the browser dialog; the action is audited. */}
                     <button
                       type="submit"
                       onClick={(e) => {
-                        if (!window.confirm("Revoking a certificate is irreversible and will be written to the audit log. Continue?")) {
+                        if (!window.confirm("Das Widerrufen ist endgültig und wird im Audit-Log festgehalten. Fortfahren?")) {
                           e.preventDefault();
                         }
                       }}
                       className="h-9 shrink-0 rounded-md bg-destructive px-3 text-sm font-medium text-white transition-colors hover:bg-destructive/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     >
-                      Revoke
+                      Widerrufen
                     </button>
                   </form>
                 )}
@@ -74,7 +74,7 @@ export default async function CertificatesPage() {
           </li>
         ))}
         {certificates.length === 0 && (
-          <li><Card><CardContent className="p-8 text-center text-sm text-muted-foreground">No certificates issued yet.</CardContent></Card></li>
+          <li><Card><CardContent className="p-8 text-center text-sm text-muted-foreground">Noch keine Zertifikate ausgestellt.</CardContent></Card></li>
         )}
       </ul>
     </div>

@@ -1,15 +1,15 @@
-import { en, type Dict } from "./en";
-import { ar } from "./ar";
+import { de, type Dict } from "./de";
+import { en } from "./en";
 
-const dictionaries: Record<string, Dict> = { en, ar };
+const dictionaries: Record<string, Dict> = { de, en };
 
 export function getDictionary(locale: string): Dict {
-  return dictionaries[locale] ?? en;
+  return dictionaries[locale] ?? de;
 }
 
 /** Resolve a dot-path key ("nav.overview") against the dictionary. */
 export function translate(dict: Dict, key: string, vars?: Record<string, string | number>): string {
-  const value = key.split(".").reduce<unknown>((acc, part) => {
+  let value = key.split(".").reduce<unknown>((acc, part) => {
     if (acc && typeof acc === "object") return (acc as Record<string, unknown>)[part];
     return undefined;
   }, dict);

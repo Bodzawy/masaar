@@ -9,12 +9,15 @@ export function formatPrice(cents: number, currency = "EUR"): string {
   return new Intl.NumberFormat("de-DE", { style: "currency", currency }).format(cents / 100);
 }
 
-export function formatDate(d: Date | string, locale = "en-GB"): string {
-  return new Intl.DateTimeFormat(locale, { day: "numeric", month: "short", year: "numeric" }).format(new Date(d));
+// Deterministische Formatierung (Server & Client identisch) – Produktzeitzone Mitteleuropa.
+const APP_TIME_ZONE = "Europe/Berlin";
+
+export function formatDate(d: Date | string, locale = "de-DE"): string {
+  return new Intl.DateTimeFormat(locale, { day: "numeric", month: "short", year: "numeric", timeZone: APP_TIME_ZONE }).format(new Date(d));
 }
 
-export function formatDateTime(d: Date | string, locale = "en-GB"): string {
-  return new Intl.DateTimeFormat(locale, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }).format(new Date(d));
+export function formatDateTime(d: Date | string, locale = "de-DE"): string {
+  return new Intl.DateTimeFormat(locale, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: APP_TIME_ZONE }).format(new Date(d));
 }
 
 export function initials(name: string): string {

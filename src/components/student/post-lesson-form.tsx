@@ -14,12 +14,12 @@ import { cn } from "@/lib/utils";
 import { submitRating, reportTeacher, requestRetake } from "@/app/actions/post-lesson";
 
 const CATEGORIES = [
-  ["explanation", "Explanation quality"],
-  ["languageClarity", "Language clarity"],
-  ["punctuality", "Punctuality"],
-  ["interaction", "Interaction"],
-  ["patience", "Patience"],
-  ["technicalQuality", "Technical quality"],
+  ["explanation", "Qualität der Erklärung"],
+  ["languageClarity", "Sprachliche Klarheit"],
+  ["punctuality", "Pünktlichkeit"],
+  ["interaction", "Interaktion"],
+  ["patience", "Geduld"],
+  ["technicalQuality", "Technische Qualität"],
 ] as const;
 
 export function PostLessonForm({
@@ -56,11 +56,11 @@ export function PostLessonForm({
   function submit() {
     setError(null);
     if (!CATEGORIES.every(([k]) => ratings[k])) {
-      setError("Please rate all six categories.");
+      setError("Bitte bewerte alle sechs Kategorien.");
       return;
     }
     if (overallLow && comment.trim().length < 10) {
-      setError("Please tell us what happened (at least 10 characters).");
+      setError("Bitte beschreibe kurz, was passiert ist (mind. 10 Zeichen).");
       return;
     }
     start(async () => {
@@ -91,8 +91,8 @@ export function PostLessonForm({
           <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-success/15">
             <Star className="h-7 w-7 text-success" aria-hidden />
           </span>
-          <h1 className="mt-4 text-xl font-semibold">Thanks for your feedback!</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Continuing to your lesson quiz…</p>
+          <h1 className="mt-4 text-xl font-semibold">Danke für dein Feedback!</h1>
+          <p className="mt-1 text-sm text-muted-foreground">Es geht weiter zu deinem Quiz…</p>
         </CardContent>
       </Card>
     );
@@ -104,9 +104,9 @@ export function PostLessonForm({
         <CardContent className="space-y-6 p-6 sm:p-8">
           <div className="text-center">
             <UserAvatar name={teacherName} color={teacherColor} className="mx-auto h-16 w-16 text-xl" />
-            <h1 className="mt-3 text-xl font-semibold">How was your lesson?</h1>
+            <h1 className="mt-3 text-xl font-semibold">Wie war deine Unterrichtsstunde?</h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              {lessonTitle} with {teacherName} — your feedback keeps teaching quality high.
+              {lessonTitle} bei {teacherName} – dein Feedback hält die Qualität hoch.
             </p>
           </div>
 
@@ -121,14 +121,14 @@ export function PostLessonForm({
 
           <div className="space-y-1.5">
             <Label htmlFor="comment">
-              {overallLow ? "What happened? (required for low ratings)" : "Anything to add? (optional)"}
+              {overallLow ? "Was ist passiert? (bei niedrigen Bewertungen erforderlich)" : "Möchtest du etwas ergänzen? (optional)"}
             </Label>
             <Textarea
               id="comment"
               rows={3}
               value={comment}
               onChange={(e) => setComment(e.target.value)}
-              placeholder="Share what went well or what could improve…"
+              placeholder="Was lief gut, was kann besser werden…"
             />
           </div>
 
@@ -140,11 +140,11 @@ export function PostLessonForm({
                 checked={favorite}
                 onCheckedChange={(v) => setFavorite(v === true)}
               />
-              Add {teacherName.split(" ")[0]} to my favorites
+              {teacherName.split(" ")[0]} zu meinen Favoriten hinzufügen
             </Label>
             <Button onClick={submit} disabled={pending || !overallSet}>
               {pending && <Loader2 className="animate-spin" aria-hidden />}
-              Submit & continue
+              Absenden & weiter
             </Button>
           </div>
 
@@ -157,8 +157,8 @@ export function PostLessonForm({
             >
               <RotateCcw className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
               <span className="text-xs leading-relaxed">
-                <strong className="block text-sm">Request lesson retake</strong>
-                Repeat this lesson with another teacher after review.
+                <strong className="block text-sm">Wiederholung anfragen</strong>
+                Lektion nach Prüfung mit einer anderen Lehrkraft wiederholen.
               </span>
             </button>
             <button
@@ -168,8 +168,8 @@ export function PostLessonForm({
             >
               <Flag className="mt-0.5 h-4 w-4 shrink-0 text-destructive" aria-hidden />
               <span className="text-xs leading-relaxed">
-                <strong className="block text-sm">Report teacher</strong>
-                Serious concerns go to our moderation team.
+                <strong className="block text-sm">Lehrkraft melden</strong>
+                Ernste Anliegen gehen an unser Moderationsteam.
               </span>
             </button>
           </div>
@@ -180,28 +180,28 @@ export function PostLessonForm({
       <Dialog open={reportOpen} onOpenChange={setReportOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Report teacher</DialogTitle>
+            <DialogTitle>Lehrkraft melden</DialogTitle>
             <DialogDescription>
-              Describe the problem precisely. Reports create a case reviewed by our moderation team and are treated confidentially.
+              Beschreibe das Problem präzise. Deine Meldung wird zu einem vertraulich behandelten Fall unseres Moderationsteams.
             </DialogDescription>
           </DialogHeader>
-          <Textarea rows={4} value={reportText} onChange={(e) => setReportText(e.target.value)} placeholder="What happened during the session?" />
+          <Textarea rows={4} value={reportText} onChange={(e) => setReportText(e.target.value)} placeholder="Was ist während der Stunde passiert?" />
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setReportOpen(false)}>Cancel</Button>
+            <Button variant="ghost" onClick={() => setReportOpen(false)}>Abbrechen</Button>
             <Button
               variant="destructive"
               disabled={pending || reportText.trim().length < 20}
               onClick={() =>
                 start(async () => {
-                  const res = await reportTeacher({ bookingId, reason: "OTHER", description: reportText.trim() });
+                  const res = await reportTeacher({ bookingId, reason: "INAPPROPRIATE_CONDUCT", description: reportText.trim() });
                   if (res.ok) {
                     setReportOpen(false);
-                    setDialogMsg(`Report submitted — case ${res.caseId} created.`);
+                    setDialogMsg(`Meldung eingegangen – Fall ${res.caseId} erstellt.`);
                   }
                 })
               }
             >
-              Submit report
+              Meldung absenden
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -211,13 +211,13 @@ export function PostLessonForm({
       <Dialog open={retakeOpen} onOpenChange={setRetakeOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Request a lesson retake</DialogTitle>
+            <DialogTitle>Lektion wiederholen</DialogTitle>
             <DialogDescription>
               Retake requests are reviewed by our team. If approved, one lesson credit is returned and you can repeat this
               lesson with another teacher. Approval is not automatic and refunds are never issued before review.
             </DialogDescription>
           </DialogHeader>
-          <Textarea rows={4} value={retakeText} onChange={(e) => setRetakeText(e.target.value)} placeholder="Why should this lesson be retaken?" />
+          <Textarea rows={4} value={retakeText} onChange={(e) => setRetakeText(e.target.value)} placeholder="Warum soll diese Lektion wiederholt werden?" />
           <DialogFooter>
             <Button variant="ghost" onClick={() => setRetakeOpen(false)}>Cancel</Button>
             <Button
@@ -227,12 +227,12 @@ export function PostLessonForm({
                   const res = await requestRetake({ bookingId, lessonId, reason: retakeText.trim() });
                   if (res.ok) {
                     setRetakeOpen(false);
-                    setDialogMsg(`Retake request ${res.requestId} submitted for review.`);
+                    setDialogMsg(`Wiederholungsanfrage ${res.requestId} zur Prüfung eingereicht.`);
                   }
                 })
               }
             >
-              Submit request
+              Anfrage absenden
             </Button>
           </DialogFooter>
         </DialogContent>

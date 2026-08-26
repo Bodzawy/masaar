@@ -16,9 +16,9 @@ export default async function VocabularyPage() {
   const cards: VocabCard[] = reviews.map((r) => ({
     reviewId: r.id,
     word: r.item.word,
-    translationEn: r.item.translationEn,
-    exampleDe: r.item.exampleDe,
-    exampleEn: r.item.exampleEn,
+    translation: r.item.translation,
+    exampleTarget: r.item.exampleTarget,
+    exampleTranslation: r.item.exampleTranslation,
     partOfSpeech: r.item.partOfSpeech,
     box: r.box,
     dueToday: r.dueAt <= nowDate,
@@ -30,8 +30,8 @@ export default async function VocabularyPage() {
       <header>
         <h1 className="text-2xl font-semibold tracking-tight">My Vocabulary</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Spaced repetition keeps words active. Rate each word — harder words return sooner.
-          {dueCount > 0 && <> <strong>{dueCount} due today.</strong></>}
+          Wiederholung mit wachsenden Abständen (Spaced Repetition). Schwierigere Wörter kommen früher zurück.
+          {dueCount > 0 && <> <strong>{dueCount} heute fällig.</strong></>}
         </p>
       </header>
       <VocabReview items={cards} />

@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { AdminCharts } from "@/components/admin/charts";
 
-export const metadata = { title: "Analytics" };
+export const metadata = { title: "Analysen" };
 
 export default async function AnalyticsPage() {
   await requireRole("ACADEMIC_ADMIN", "TEACHER_MANAGER", "FINANCE_ADMIN", "SUPER_ADMIN");
@@ -25,18 +25,18 @@ export default async function AnalyticsPage() {
     <div className="container max-w-5xl space-y-6 animate-fade-in">
       <header>
         <h1 className="text-2xl font-semibold tracking-tight">Analytics</h1>
-        <p className="mt-1 text-sm text-muted-foreground">Learning activity across the platform.</p>
+        <p className="mt-1 text-sm text-muted-foreground">Lernaktivität auf der gesamten Plattform.</p>
       </header>
 
       <Card>
-        <CardHeader className="pb-2"><CardTitle className="text-base">Bookings per day</CardTitle><CardDescription>Rolling 14-day window.</CardDescription></CardHeader>
+        <CardHeader className="pb-2"><CardTitle className="text-base">Buchungen pro Tag</CardTitle><CardDescription>Rollierendes 14-Tage-Fenster.</CardDescription></CardHeader>
         <CardContent>
           <AdminCharts bookingsPerDay={bookingsByDay.map((r) => ({ day: r.day.toISOString().slice(0, 10), count: Number(r.count) }))} />
         </CardContent>
       </Card>
 
       <Card>
-        <CardHeader className="pb-3"><CardTitle className="text-base">Most-booked lessons</CardTitle></CardHeader>
+        <CardHeader className="pb-3"><CardTitle className="text-base">Meistgebuchte Lektionen</CardTitle></CardHeader>
         <CardContent>
           <ol className="space-y-1.5">
             {topLessons.map((l, i) => (
@@ -44,7 +44,7 @@ export default async function AnalyticsPage() {
                 <span className="w-5 text-center text-xs font-bold text-muted-foreground">{i + 1}</span>
                 <span className="min-w-0 flex-1 truncate">{l.titleDe}</span>
                 <span className="text-xs text-muted-foreground">{l.chapter.titleDe}</span>
-                <span className="tabular-nums text-xs font-medium">{l._count.bookings} bookings</span>
+                <span className="tabular-nums text-xs font-medium">{l._count.bookings} Buchungen</span>
               </li>
             ))}
           </ol>

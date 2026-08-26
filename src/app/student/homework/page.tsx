@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { NotebookPen, ArrowRight } from "lucide-react";
 
-export const metadata = { title: "Homework" };
+export const metadata = { title: "Hausaufgaben" };
 
 const STATUS_VARIANT = { DRAFT: "muted", SUBMITTED: "warning", GRADED: "success", RETURNED: "accent" } as const;
 
@@ -33,12 +33,12 @@ export default async function HomeworkListPage() {
   return (
     <div className="container max-w-4xl space-y-6 animate-fade-in">
       <header>
-        <h1 className="text-2xl font-semibold tracking-tight">Homework</h1>
-        <p className="mt-1 text-sm text-muted-foreground">Writing tasks and exercises for your current level.</p>
+        <h1 className="text-2xl font-semibold tracking-tight">Hausaufgaben</h1>
+        <p className="mt-1 text-sm text-muted-foreground">Schreibaufgaben und Übungen deines aktuellen Niveaus.</p>
       </header>
 
       {rows.length === 0 ? (
-        <Card><CardContent className="p-10 text-center text-sm text-muted-foreground">No homework yet — it appears when your level includes writing tasks.</CardContent></Card>
+        <Card><CardContent className="p-10 text-center text-sm text-muted-foreground">Noch keine Hausaufgaben – sie erscheinen mit den Schreibaufgaben deines Niveaus.</CardContent></Card>
       ) : (
         <ul className="space-y-3">
           {rows.map(({ lesson, chapter, sub }) => {
@@ -54,7 +54,7 @@ export default async function HomeworkListPage() {
                       <p className="truncate text-sm font-medium">{lesson.homework!.title}</p>
                       <p className="text-xs text-muted-foreground">{chapter.titleDe} · {lesson.titleDe}</p>
                     </div>
-                    <Badge variant={STATUS_VARIANT[status]}>{sub?.feedback ? `Graded ${sub.feedback.score}%` : STATUS_VARIANT[status] === "success" ? "Graded" : status === "SUBMITTED" ? "Awaiting grading" : status === "RETURNED" ? "Returned" : "Draft"}</Badge>
+                    <Badge variant={STATUS_VARIANT[status]}>{sub?.feedback ? `Korrigiert: ${sub.feedback.score}%` : status === "SUBMITTED" ? "Wartet auf Korrektur" : status === "RETURNED" ? "Zurückgegeben" : "Entwurf"}</Badge>
                     <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground rtl:rotate-180" aria-hidden />
                   </div>
                 </Link>

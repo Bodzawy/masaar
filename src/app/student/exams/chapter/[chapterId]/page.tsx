@@ -19,7 +19,7 @@ export default async function ChapterExamPage({ params }: { params: Promise<{ ch
     return (
       <div className="container max-w-lg py-24 text-center">
         <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-muted"><Lock className="h-6 w-6 text-muted-foreground" aria-hidden /></span>
-        <h1 className="mt-4 text-xl font-semibold">Chapter exam locked</h1>
+        <h1 className="mt-4 text-xl font-semibold">Kapitelprüfung gesperrt</h1>
         <p className="mt-2 max-w-sm text-sm text-muted-foreground">
           {access.reason === "NOT_ENROLLED"
             ? "Enroll in this level first."
@@ -27,7 +27,7 @@ export default async function ChapterExamPage({ params }: { params: Promise<{ ch
               ? "Pass the previous chapter exam to open this one."
               : "Complete every lesson in this chapter to unlock its exam."}
         </p>
-        <Button className="mt-6" asChild><Link href="/student/learning-path">Back to my path</Link></Button>
+        <Button className="mt-6" asChild><Link href="/student/learning-path">Zurück zum Lernweg</Link></Button>
       </div>
     );
   }
@@ -49,7 +49,7 @@ export default async function ChapterExamPage({ params }: { params: Promise<{ ch
     <div className="container py-6 animate-fade-in">
       <nav className="mx-auto mb-4 max-w-3xl text-sm text-muted-foreground" aria-label="Breadcrumb">
         <Link href="/student/learning-path" className="inline-flex items-center gap-1 hover:text-foreground">
-          <ArrowLeft className="h-3.5 w-3.5 rtl:rotate-180" aria-hidden /> {chapterExam.chapter.titleDe} — Chapter exam
+          <ArrowLeft className="h-3.5 w-3.5 rtl:rotate-180" aria-hidden /> {chapterExam.chapter.titleDe} – Kapitelprüfung
         </Link>
       </nav>
       <QuizRunner

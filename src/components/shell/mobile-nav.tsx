@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, LogOut, X } from "lucide-react";
-import type { Dict } from "@/lib/i18n/en";
+import type { Dict } from "@/lib/i18n/de";
 import { NAV_ICONS } from "@/config/nav";
 
 function labelOf(dict: Dict, key: string): string {

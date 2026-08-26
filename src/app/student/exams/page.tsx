@@ -10,7 +10,7 @@ import { Award, ShieldCheck, Lock, CheckCircle2, CircleDashed } from "lucide-rea
 import { formatDate } from "@/lib/utils";
 import { CERTIFICATE_RULES } from "@/config/domain";
 
-export const metadata = { title: "Exams & Certificates" };
+export const metadata = { title: "Prüfungen & Zertifikate" };
 
 export default async function ExamsPage() {
   const session = await requireRole("STUDENT");
@@ -40,8 +40,8 @@ export default async function ExamsPage() {
   return (
     <div className="container max-w-4xl space-y-6 animate-fade-in">
       <header>
-        <h1 className="text-2xl font-semibold tracking-tight">Exams & Certificates</h1>
-        <p className="mt-1 text-sm text-muted-foreground">Chapter exams, the final level exam and your certificates.</p>
+        <h1 className="text-2xl font-semibold tracking-tight">Prüfungen & Zertifikate</h1>
+        <p className="mt-1 text-sm text-muted-foreground">Kapitelprüfungen, die Abschlussprüfung und deine Zertifikate.</p>
       </header>
 
       {/* Final level exam status */}
@@ -51,7 +51,7 @@ export default async function ExamsPage() {
             <div className="flex flex-wrap items-center gap-3">
               <Award className={`h-5 w-5 ${path.finalExam.passed ? "text-success" : path.finalExam.unlocked ? "text-accent" : "text-muted-foreground"}`} aria-hidden />
               <div className="min-w-0 flex-1">
-                <CardTitle className="text-base">Final level exam — {code}</CardTitle>
+                <CardTitle className="text-base">Abschlussprüfung – {code}</CardTitle>
                 <CardDescription>
                   {path.finalExam.passed
                     ? "Passed! Your certificate is listed below."
@@ -61,7 +61,7 @@ export default async function ExamsPage() {
                 </CardDescription>
               </div>
               {path.finalExam.unlocked && !path.finalExam.passed && (
-                <Button size="sm" asChild><Link href={`/student/exams/final`}>View requirements</Link></Button>
+                <Button size="sm" asChild><Link href={`/student/exams/final`}>Anforderungen ansehen</Link></Button>
               )}
             </div>
           </CardHeader>
@@ -70,7 +70,7 @@ export default async function ExamsPage() {
 
       {/* Chapter exams */}
       <Card>
-        <CardHeader className="pb-3"><CardTitle className="text-base">Chapter exams</CardTitle></CardHeader>
+        <CardHeader className="pb-3"><CardTitle className="text-base">Kapitelprüfungen</CardTitle></CardHeader>
         <CardContent className="space-y-2">
           {(path?.chapters ?? []).map((c) => (
             <div key={c.id} className="flex flex-wrap items-center gap-3 rounded-lg border border-border px-4 py-3">
@@ -85,9 +85,9 @@ export default async function ExamsPage() {
               {c.examPassed ? (
                 <Badge variant="success">Passed</Badge>
               ) : c.examUnlocked ? (
-                <Button size="sm" asChild><Link href={`/student/exams/chapter/${c.id}`}>Take exam</Link></Button>
+                <Button size="sm" asChild><Link href={`/student/exams/chapter/${c.id}`}>Prüfung starten</Link></Button>
               ) : (
-                <Badge variant="muted">Complete lessons first</Badge>
+                <Badge variant="muted">Zuerst Lektionen abschließen</Badge>
               )}
             </div>
           ))}
@@ -97,9 +97,9 @@ export default async function ExamsPage() {
       {/* Proctoring boundary */}
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-base"><ShieldCheck className="h-4 w-4 text-primary" aria-hidden /> Proctoring requirements</CardTitle>
+          <CardTitle className="flex items-center gap-2 text-base"><ShieldCheck className="h-4 w-4 text-primary" aria-hidden /> Prüfungsaufsicht (Integrationsgrenze)</CardTitle>
           <CardDescription>
-            Integration boundary: these checks show vendor statuses. Real secure proctoring requires credentials and is not connected in this build.
+            Integrationsgrenze: Die Punkte zeigen Anbieter-Status. Echte Prüfungsaufsicht benötigt Zugangsdaten und ist hier nicht verbunden.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -107,7 +107,7 @@ export default async function ExamsPage() {
             {proctoringItems.map((item) => (
               <li key={item.label} className="flex items-center justify-between rounded-md border border-border px-3 py-2 text-sm">
                 {item.label}
-                <Badge variant={item.connected ? "success" : "muted"}>{item.connected ? "Connected" : "Demo placeholder"}</Badge>
+                <Badge variant={item.connected ? "success" : "muted"}>{item.connected ? "Verbunden" : "Demo-Platzhalter"}</Badge>
               </li>
             ))}
           </ul>
@@ -116,40 +116,40 @@ export default async function ExamsPage() {
 
       {/* Attempts */}
       <Card>
-        <CardHeader className="pb-3"><CardTitle className="text-base">Recent attempts</CardTitle></CardHeader>
+        <CardHeader className="pb-3"><CardTitle className="text-base">Letzte Versuche</CardTitle></CardHeader>
         <CardContent>
           <ul className="space-y-1.5 text-sm">
             {examAttempts.map((a) => (
               <li key={a.id} className="flex flex-wrap items-center gap-2 rounded-md px-2 py-1.5 odd:bg-muted/60">
                 <span className="w-24 text-xs text-muted-foreground">{formatDate(a.createdAt)}</span>
                 <span className="min-w-0 flex-1 truncate">
-                  {a.kind === "CHAPTER" ? a.chapterExam?.chapter.titleDe : `Final exam ${a.levelExam?.level.code}`}
+                  {a.kind === "CHAPTER" ? a.chapterExam?.chapter.titleDe : `Abschlussprüfung ${a.levelExam?.level.code}`}
                 </span>
                 <span className="tabular-nums text-xs">{a.score}%</span>
-                <Badge variant={a.passed ? "success" : "destructive"}>{a.passed ? "Passed" : "Failed"}</Badge>
+                <Badge variant={a.passed ? "success" : "destructive"}>{a.passed ? "Bestanden" : "Nicht bestanden"}</Badge>
               </li>
             ))}
-            {examAttempts.length === 0 && <li className="text-xs text-muted-foreground">No attempts yet.</li>}
+            {examAttempts.length === 0 && <li className="text-xs text-muted-foreground">Noch keine Versuche.</li>}
           </ul>
         </CardContent>
       </Card>
 
       {/* Certificates */}
       <Card>
-        <CardHeader className="pb-3"><CardTitle className="text-base">Certificates</CardTitle><CardDescription>{CERTIFICATE_RULES.issuerLine}</CardDescription></CardHeader>
+        <CardHeader className="pb-3"><CardTitle className="text-base">Zertifikate</CardTitle><CardDescription>{CERTIFICATE_RULES.issuerLine}</CardDescription></CardHeader>
         <CardContent className="space-y-2">
           {certificates.map((cert) => (
             <div key={cert.id} className="flex flex-wrap items-center gap-3 rounded-lg border border-border px-4 py-3">
               <Award className="h-5 w-5 text-accent" aria-hidden />
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-semibold">{cert.level.code} · {cert.level.title}</p>
-                <p className="text-xs text-muted-foreground">{cert.serial} · Score {cert.score}% · Issued {formatDate(cert.issuedAt)}</p>
+                <p className="text-xs text-muted-foreground">{cert.serial} · Ergebnis {cert.score}% · Ausgestellt {formatDate(cert.issuedAt)}</p>
               </div>
               <Badge variant={cert.status === "VALID" ? "success" : cert.status === "REVOKED" ? "destructive" : "muted"}>{cert.status.toLowerCase()}</Badge>
-              <Button size="sm" variant="outline" asChild><Link href={`/verify/${cert.serial}`}>Verify</Link></Button>
+              <Button size="sm" variant="outline" asChild><Link href={`/verify/${cert.serial}`}>Verifizieren</Link></Button>
             </div>
           ))}
-          {certificates.length === 0 && <p className="text-sm text-muted-foreground">Complete a level to earn your first certificate.</p>}
+          {certificates.length === 0 && <p className="text-sm text-muted-foreground">Schließe ein Niveau ab, um dein erstes Zertifikat zu erhalten.</p>}
           <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">{CERTIFICATE_RULES.disclaimer}</p>
         </CardContent>
       </Card>

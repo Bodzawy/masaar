@@ -36,14 +36,14 @@ export const PROGRESSION = {
 /** Explanation templates shown when content is locked (never a bare "locked"). */
 export const LOCK_REASONS = {
   LESSON_SEQUENCE:
-    "This lesson unlocks after you complete the previous lesson: attend the live session, pass its quiz with at least {score}%, and submit the homework.",
+    "Diese Lektion wird frei, nachdem du die vorherige abgeschlossen hast: Live-Unterricht besuchen, Quiz mit mindestens {score}% bestehen und die Hausaufgabe einreichen.",
   CHAPTER_EXAM:
-    "The chapter exam unlocks when every lesson in this chapter is completed.",
+    "Die Kapitelprüfung wird frei, wenn alle Lektionen dieses Kapitels abgeschlossen sind.",
   NEXT_CHAPTER:
-    "This chapter opens once you pass the previous chapter exam with at least {score}%.",
+    "Dieses Kapitel öffnet sich, sobald du die vorherige Kapitelprüfung mit mindestens {score}% bestanden hast.",
   LEVEL_EXAM:
-    "The final level exam unlocks after you pass every chapter exam in this level.",
-  NOT_ENROLLED: "Enroll in this level to unlock its learning path.",
+    "Die Abschlussprüfung wird frei, nachdem du alle Kapitelprüfungen dieses Niveaus bestanden hast.",
+  NOT_ENROLLED: "Schreibe dich in dieses Niveau ein, um den Lernweg freizuschalten.",
 } as const;
 
 // ── Teacher ranks & qualification ceilings ───────────────────────────────────
@@ -103,10 +103,9 @@ export const BOOKING_RULES = {
 
 // ── Certificates ─────────────────────────────────────────────────────────────
 export const CERTIFICATE_RULES = {
-  /** Platform-issued CEFR level-completion certificate wording. */
-  issuerLine: "Platform-issued level completion certificate",
+  issuerLine: "Plattform-eigenes Niveau-Abschlusszertifikat",
   disclaimer:
-    "This certificate documents course completion on the platform. It is not an externally accredited examination (e.g. Goethe-Institut or telc).",
+    "Dieses Zertifikat dokumentiert den Kursabschluss auf der Plattform. Es handelt sich nicht um eine extern akkreditierte Prüfung (z. B. Goethe-Institut oder telc).",
   validityYears: 3,
 } as const;
 

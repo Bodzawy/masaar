@@ -81,9 +81,9 @@ export default async function FindTeacherPage({ searchParams }: { searchParams: 
   return (
     <div className="container max-w-7xl space-y-6 animate-fade-in">
       <header>
-        <h1 className="text-2xl font-semibold tracking-tight">Find a Teacher</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Lehrkraft finden</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Start an instant lesson with an online teacher, or schedule for later. Favorites who are online appear first.
+          Sofort Unterricht bei einer online-Lehrkraft starten oder einen Termin planen. Online-Favoriten erscheinen zuerst.
         </p>
       </header>
       <TeacherDiscovery teachers={qualified} lessonContext={lessonContext} />

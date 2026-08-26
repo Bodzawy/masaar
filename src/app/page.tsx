@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, BookOpenCheck, ShieldCheck, Users, CheckCircle2, Lock } from "lucide-react";
+import { ArrowRight, BookOpenCheck, ShieldCheck, Users, CheckCircle2, Lock, Languages } from "lucide-react";
 import { brand } from "@/config/brand";
 import { CEFR_LEVELS } from "@/config/domain";
 import { getLocale } from "@/lib/i18n/server";
@@ -10,11 +10,17 @@ import { LanguageSwitcher } from "@/components/language-switcher";
 
 export default async function LandingPage() {
   const locale = await getLocale();
-  const t = (k: string) => {
-    const dict = getDictionary(locale);
-    return k.split(".").reduce<unknown>((acc, part) => (acc && typeof acc === "object" ? (acc as Record<string, unknown>)[part] : undefined), dict);
+  const dict = getDictionary(locale);
+  const tr = (key: string): string => {
+    const v = key.split(".").reduce<unknown>((acc, part) => (acc && typeof acc === "object" ? (acc as Record<string, unknown>)[part] : undefined), dict);
+    return typeof v === "string" ? v : key;
   };
-  const tr = (key: string): string => (typeof t(key) === "string" ? (t(key) as string) : key);
+
+  const features = [
+    { icon: BookOpenCheck, title: tr("landing.featureCurriculumTitle"), body: tr("landing.featureCurriculumBody") },
+    { icon: Users, title: tr("landing.featureTeachersTitle"), body: tr("landing.featureTeachersBody") },
+    { icon: ShieldCheck, title: tr("landing.featureProofTitle"), body: tr("landing.featureProofBody") },
+  ];
 
   return (
     <div className="min-h-dvh">
@@ -23,6 +29,7 @@ export default async function LandingPage() {
           <div className="flex items-center gap-2.5">
             <BrandMark />
             <span className="text-lg font-semibold tracking-tight">{brand.name}</span>
+            <span className="font-arabic text-sm text-muted-foreground" lang="ar" aria-hidden>مسار</span>
           </div>
           <nav className="flex items-center gap-2 sm:gap-3">
             <div className="hidden sm:block">
@@ -58,6 +65,13 @@ export default async function LandingPage() {
               <p className="mt-5 text-pretty text-lg leading-relaxed text-muted-foreground">
                 {tr("landing.heroSubtitle")}
               </p>
+              {/* Arabisches Schriftprobe-Element: RTL-Insel im LTR-Layout */}
+              <p className="mt-6 rounded-lg border border-border bg-card px-4 py-3 text-muted-foreground">
+                Deine ersten Wörter:{" "}
+                <span dir="rtl" lang="ar" className="font-arabic text-lg text-foreground">مَرْحَبًا</span>{" "}
+                ·{" "}
+                <span dir="rtl" lang="ar" className="font-arabic text-lg text-foreground">شُكْرًا</span>
+              </p>
               <div className="mt-8 flex flex-wrap items-center gap-3">
                 <Button size="lg" asChild>
                   <Link href="/signup">
@@ -72,10 +86,10 @@ export default async function LandingPage() {
               <p className="mt-6 text-sm text-muted-foreground">{brand.companyName}</p>
             </div>
 
-            {/* Level path visual */}
+            {/* Level-Pfad-Visual */}
             <div className="relative mx-auto w-full max-w-md" aria-hidden>
               <div className="rounded-xl border border-border bg-card p-6 shadow-card">
-                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">CEFR Path</p>
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{tr("landing.levelsLabel")}</p>
                 <ol className="mt-4 space-y-2.5">
                   {CEFR_LEVELS.map((lvl, i) => (
                     <li key={lvl} className="flex items-center gap-3 rounded-lg border border-border/70 bg-background px-4 py-2.5">
@@ -101,7 +115,7 @@ export default async function LandingPage() {
                 </ol>
               </div>
               <div className="absolute -bottom-5 end-6 rotate-2 rounded-lg border border-accent/40 bg-accent px-3 py-1.5 text-xs font-semibold shadow-card">
-                B2 · Arbeitswelt
+                {tr("landing.currentBadgeDemo")}
               </div>
             </div>
           </div>
@@ -110,11 +124,7 @@ export default async function LandingPage() {
         {/* Features */}
         <section className="border-t border-border bg-card py-20">
           <div className="container grid gap-10 md:grid-cols-3">
-            {[
-              { icon: BookOpenCheck, title: tr("landing.featureCurriculumTitle"), body: tr("landing.featureCurriculumBody") },
-              { icon: Users, title: tr("landing.featureTeachersTitle"), body: tr("landing.featureTeachersBody") },
-              { icon: ShieldCheck, title: tr("landing.featureProofTitle"), body: tr("landing.featureProofBody") },
-            ].map((f) => (
+            {features.map((f) => (
               <div key={f.title} className="rounded-xl border border-border bg-background p-7">
                 <span className="inline-flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10 text-primary">
                   <f.icon className="h-5 w-5" aria-hidden />
@@ -123,6 +133,23 @@ export default async function LandingPage() {
                 <p className="mt-2 leading-relaxed text-muted-foreground">{f.body}</p>
               </div>
             ))}
+          </div>
+        </section>
+
+        {/* Was du lernst */}
+        <section className="py-20">
+          <div className="container max-w-3xl text-center">
+            <Languages className="mx-auto h-8 w-8 text-primary" aria-hidden />
+            <h2 className="mt-4 text-2xl font-semibold tracking-tight sm:text-3xl">Modernes Hocharabisch – solide und praxisnah</h2>
+            <p className="mx-auto mt-4 max-w-2xl leading-relaxed text-muted-foreground">
+              Du lernst Modernes Hocharabisch (فصحى) – verständlich in der ganzen arabischen Welt. Auf Wunsch vertiefen
+              Lehrkräfte mit Schwerpunkten wie ägyptischem oder levantinischem Dialekt, Aussprache oder Konversation.
+            </p>
+            <div className="mx-auto mt-8 flex max-w-md flex-wrap justify-center gap-2">
+              {["Modernes Hocharabisch", "Arabisch für Anfänger", "Konversation", "Grammatik", "Lesen & Schreiben", "Aussprache"].map((s) => (
+                <Badge key={s} variant="secondary">{s}</Badge>
+              ))}
+            </div>
           </div>
         </section>
 
@@ -144,7 +171,7 @@ export default async function LandingPage() {
 function BrandMark() {
   return (
     <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground shadow-xs" aria-hidden>
-      <span className="-mb-px">D</span>
+      م
     </span>
   );
 }

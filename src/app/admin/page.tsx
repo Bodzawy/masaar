@@ -57,26 +57,26 @@ export default async function AdminOverviewPage() {
   return (
     <div className="container max-w-7xl space-y-6 animate-fade-in">
       <header>
-        <h1 className="text-2xl font-semibold tracking-tight">Platform Overview</h1>
-        <p className="mt-1 text-sm text-muted-foreground">Operational metrics derived from live data.</p>
+        <h1 className="text-2xl font-semibold tracking-tight">Plattform-Übersicht</h1>
+        <p className="mt-1 text-sm text-muted-foreground">Betriebskennzahlen – direkt aus den Daten abgeleitet.</p>
       </header>
 
       {/* KPI band */}
       <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">
-        <Kpi icon={Users2} label="Students" value={totalStudents} sub={`+${newStudents} this month`} />
-        <Kpi icon={Activity} label="Teachers online" value={onlineTeachers} sub={`${suspendedTeachers} suspended`} />
-        <Kpi icon={CalendarCheck} label="Today's lessons" value={todaysLessons} sub={`${completedLessons} completed all-time`} />
-        <Kpi icon={XCircle} label="Cancellations" value={cancellations} sub="all-time incl. no-shows" />
-        <Kpi icon={ShieldAlert} label="Open reports" value={openReports} sub={`${underReviewReports} under review`} />
-        <Kpi icon={RefreshCcw} label="Pending retakes" value={pendingRetakes} />
+        <Kpi icon={Users2} label="Lernende" value={totalStudents} sub={`+${newStudents} diesen Monat`} />
+        <Kpi icon={Activity} label="Lehrkräfte online" value={onlineTeachers} sub={`${suspendedTeachers} gesperrt`} />
+        <Kpi icon={CalendarCheck} label="Heutige Einheiten" value={todaysLessons} sub={`${completedLessons} insgesamt abgeschlossen`} />
+        <Kpi icon={XCircle} label="Stornierungen" value={cancellations} sub="inkl. Nichtantritte" />
+        <Kpi icon={ShieldAlert} label="Offene Meldungen" value={openReports} sub={`${underReviewReports} in Prüfung`} />
+        <Kpi icon={RefreshCcw} label="Offene Wiederholungen" value={pendingRetakes} />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-5">
         {/* Lessons per day */}
         <Card className="lg:col-span-3">
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Bookings — last 14 days</CardTitle>
-            <CardDescription>Daily volume across instant and scheduled lessons.</CardDescription>
+            <CardTitle className="text-base">Buchungen – letzte 14 Tage</CardTitle>
+            <CardDescription>Tagesvolumen über Sofort- und Geplant-Buchungen.</CardDescription>
           </CardHeader>
           <CardContent>
             <AdminCharts
@@ -88,22 +88,22 @@ export default async function AdminOverviewPage() {
         {/* Completion + pass rates */}
         <div className="space-y-6 lg:col-span-2">
           <Card>
-            <CardHeader className="pb-2"><CardTitle className="flex items-center gap-2 text-base"><BookOpenCheck className="h-4 w-4 text-primary" aria-hidden /> Lesson completion</CardTitle></CardHeader>
+            <CardHeader className="pb-2"><CardTitle className="flex items-center gap-2 text-base"><BookOpenCheck className="h-4 w-4 text-primary" aria-hidden /> Lektionsabschlüsse</CardTitle></CardHeader>
             <CardContent>
               <p className="text-3xl font-semibold tabular-nums">{completionPercent}%</p>
-              <p className="text-xs text-muted-foreground">{completedCount} of {lessonTotals} unlocked lessons completed</p>
+              <p className="text-xs text-muted-foreground">{completedCount} von {lessonTotals} freigeschalteten Lektionen abgeschlossen</p>
             </CardContent>
           </Card>
           <Card>
-            <CardHeader className="pb-2"><CardTitle className="text-base">Exam pass rate</CardTitle></CardHeader>
+            <CardHeader className="pb-2"><CardTitle className="text-base">Prüfungserfolgsquote</CardTitle></CardHeader>
             <CardContent>
               {chapterPassRate != null ? (
                 <>
                   <p className="text-3xl font-semibold tabular-nums">{chapterPassRate}%</p>
-                  <p className="text-xs text-muted-foreground">{chapterPassed}/{chapterTotal} chapter exam attempts passed</p>
+                  <p className="text-xs text-muted-foreground">{chapterPassed}/{chapterTotal} Kapitelprüfungs-Versuche bestanden</p>
                 </>
               ) : (
-                <p className="text-sm text-muted-foreground">No attempts yet.</p>
+                <p className="text-sm text-muted-foreground">Noch keine Versuche.</p>
               )}
             </CardContent>
           </Card>
@@ -112,9 +112,9 @@ export default async function AdminOverviewPage() {
 
       {/* Quick links to operational queues */}
       <div className="grid gap-4 sm:grid-cols-3">
-        <QueueLink href="/admin/reports" icon={ShieldAlert} title="Reports & Investigations" desc={`${openReports + underReviewReports} active cases`} tone={openReports > 0 ? "warning" : undefined} />
-        <QueueLink href="/admin/retakes" icon={RefreshCcw} title="Retake Requests" desc={`${pendingRetakes} awaiting review`} tone={pendingRetakes > 0 ? "accent" : undefined} />
-        <QueueLink href="/admin/teachers" icon={GraduationCap} title="Teacher Pipeline" desc="Onboarding & quality control" />
+        <QueueLink href="/admin/reports" icon={ShieldAlert} title="Meldungen & Untersuchungen" desc={`${openReports + underReviewReports} aktive Fälle`} tone={openReports > 0 ? "warning" : undefined} />
+        <QueueLink href="/admin/retakes" icon={RefreshCcw} title="Wiederholungsanfragen" desc={`${pendingRetakes} warten auf Prüfung`} tone={pendingRetakes > 0 ? "accent" : undefined} />
+        <QueueLink href="/admin/teachers" icon={GraduationCap} title="Lehrkräfte-Pipeline" desc="Onboarding & Qualitätskontrolle" />
       </div>
     </div>
   );

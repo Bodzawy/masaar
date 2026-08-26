@@ -10,8 +10,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { UserAvatar } from "@/components/ui/avatar";
 import { ArrowLeft, StickyNote } from "lucide-react";
+import { formatDateTime } from "@/lib/utils";
 
-export const metadata = { title: "Student history" };
+export const metadata = { title: "Lernhistorie" };
 
 export default async function StudentDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await requireRole("TEACHER");
@@ -41,7 +42,7 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
     <div className="container max-w-4xl space-y-6 animate-fade-in">
       <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground">
         <Link href="/teacher/students" className="inline-flex items-center gap-1 hover:text-foreground">
-          <ArrowLeft className="h-3.5 w-3.5 rtl:rotate-180" aria-hidden /> Students
+          <ArrowLeft className="h-3.5 w-3.5 rtl:rotate-180" aria-hidden /> Lernende
         </Link>
       </nav>
 
@@ -50,8 +51,8 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
         <div className="min-w-0 flex-1">
           <h1 className="text-xl font-semibold tracking-tight">{student.name}</h1>
           <p className="text-sm text-muted-foreground">
-            {student.studentProfile?.nativeLanguage ?? "—"} speaker · Goal: {student.studentProfile?.learningGoal ?? "—"}
-            {student.studentProfile?.studyPreference ? ` · ${student.studentProfile.studyPreference}` : ""}
+            {student.studentProfile?.nativeLanguage ?? "—"} Muttersprache: {student.studentProfile?.learningGoal ?? "—"}
+            
           </p>
         </div>
       </header>
@@ -59,7 +60,7 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
       <div className="grid gap-6 md:grid-cols-2">
         {/* Skill profile */}
         <Card>
-          <CardHeader className="pb-3"><CardTitle className="text-base">Skill profile</CardTitle></CardHeader>
+          <CardHeader className="pb-3"><CardTitle className="text-base">Fähigkeitsprofil</CardTitle></CardHeader>
           <CardContent className="space-y-2.5">
             {student.skillScores.map((s) => (
               <div key={s.id}>
@@ -69,7 +70,7 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
             ))}
             {failedQuizzes.length > 0 && (
               <p className="rounded-md bg-accent/10 px-3 py-2 text-xs text-accent-foreground">
-                Failed quizzes: {failedQuizzes.length} — consider reviewing those topics next session.
+                Nicht bestandene Quiz: {failedQuizzes.length} – beim nächsten Mal wiederholen.
               </p>
             )}
           </CardContent>
@@ -77,7 +78,7 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
 
         {/* Learning history */}
         <Card>
-          <CardHeader className="pb-3"><CardTitle className="text-base">Recent completions</CardTitle></CardHeader>
+          <CardHeader className="pb-3"><CardTitle className="text-base">Zuletzt abgeschlossen</CardTitle></CardHeader>
           <CardContent>
             <ul className="space-y-1.5 text-sm">
               {student.lessonProgress.map((p) => (
@@ -86,7 +87,7 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
                   <Badge variant="success" className="ms-2 shrink-0">{p.quizBestScore ?? 0}%</Badge>
                 </li>
               ))}
-              {student.lessonProgress.length === 0 && <li className="text-xs text-muted-foreground">No completed lessons yet.</li>}
+              {student.lessonProgress.length === 0 && <li className="text-xs text-muted-foreground">Noch keine abgeschlossenen Lektionen.</li>}
             </ul>
           </CardContent>
         </Card>
@@ -95,8 +96,8 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
       {/* Internal notes */}
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-base"><StickyNote className="h-4 w-4 text-primary" aria-hidden /> Internal notes</CardTitle>
-          <CardDescription>Private to you. Students never see these.</CardDescription>
+          <CardTitle className="flex items-center gap-2 text-base"><StickyNote className="h-4 w-4 text-primary" aria-hidden /> Interne Notizen</CardTitle>
+          <CardDescription>Nur für dich sichtbar. Lernende sehen diese nie.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <form
@@ -107,17 +108,17 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
             }}
             className="flex flex-col gap-2 sm:flex-row"
           >
-            <Textarea name="note" rows={2} placeholder="Recurring mistakes, pronunciation notes, recommended focus…" required minLength={3} className="flex-1" aria-label="New internal note" />
-            <Button type="submit" className="sm:self-end">Save note</Button>
+            <Textarea name="note" rows={2} placeholder="Wiederkehrende Fehler, Aussprache, Empfehlungen…" required minLength={3} className="flex-1" aria-label="Neue interne Notiz" />
+            <Button type="submit" className="sm:self-end">Notiz speichern</Button>
           </form>
           <ul className="space-y-2">
             {notes.map((n) => (
               <li key={n.id} className="rounded-lg border border-border bg-background p-3">
                 <p className="text-sm leading-relaxed">{n.body}</p>
-                <time className="mt-1 block text-[11px] text-muted-foreground">{n.createdAt.toLocaleString("en-GB")}</time>
+                <time className="mt-1 block text-[11px] text-muted-foreground">{formatDateTime(n.createdAt)}</time>
               </li>
             ))}
-            {notes.length === 0 && <li className="text-sm text-muted-foreground">No notes yet.</li>}
+            {notes.length === 0 && <li className="text-sm text-muted-foreground">Noch keine Notizen.</li>}
           </ul>
         </CardContent>
       </Card>

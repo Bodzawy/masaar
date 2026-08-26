@@ -30,7 +30,7 @@ export default async function VerifyCertificatePage({ params }: { params: Promis
       <div className="w-full max-w-xl space-y-5">
         <div className="text-center">
           <span className="mx-auto flex h-11 w-11 items-center justify-center rounded-xl bg-primary font-bold text-primary-foreground">D</span>
-          <p className="mt-2 text-sm text-muted-foreground">{brand.name} — public certificate verification</p>
+          <p className="mt-2 text-sm text-muted-foreground">{brand.name} – öffentliche Zertifikatverifizierung</p>
         </div>
 
         <Card className={valid ? "" : "border-destructive/40"}>
@@ -45,7 +45,7 @@ export default async function VerifyCertificatePage({ params }: { params: Promis
                 <>
                   <ShieldX className="h-9 w-9 shrink-0 text-destructive" aria-hidden />
                   <Badge variant="destructive" className="uppercase tracking-wide">
-                    {cert.status === "REVOKED" ? `Revoked${cert.revokedAt ? ` ${formatDate(cert.revokedAt)}` : ""}` : "Expired"}
+                    {cert.status === "REVOKED" ? `Widerrufen${cert.revokedAt ? ` am ${formatDate(cert.revokedAt)}` : ""}` : "Abgelaufen"}
                   </Badge>
                 </>
               )}
@@ -54,11 +54,11 @@ export default async function VerifyCertificatePage({ params }: { params: Promis
             <div className="mt-6 flex flex-wrap items-start justify-between gap-6">
               <dl className="min-w-0 flex-1 space-y-3.5 text-sm">
                 <div>
-                  <dt className="text-xs uppercase tracking-wide text-muted-foreground">Awarded to</dt>
+                  <dt className="text-xs uppercase tracking-wide text-muted-foreground">Ausgestellt für</dt>
                   <dd className="mt-0.5 text-lg font-semibold">{cert.student.name}</dd>
                 </div>
                 <div>
-                  <dt className="text-xs uppercase tracking-wide text-muted-foreground">Level completed</dt>
+                  <dt className="text-xs uppercase tracking-wide text-muted-foreground">Abgeschlossenes Niveau</dt>
                   <dd className="mt-0.5 flex items-center gap-2 font-medium">
                     <Award className="h-4 w-4 text-accent" aria-hidden />
                     {cert.level.code} · {cert.level.title}
@@ -66,16 +66,16 @@ export default async function VerifyCertificatePage({ params }: { params: Promis
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <dt className="text-xs uppercase tracking-wide text-muted-foreground">Score</dt>
+                    <dt className="text-xs uppercase tracking-wide text-muted-foreground">Ergebnis</dt>
                     <dd className="font-semibold tabular-nums">{cert.score}%</dd>
                   </div>
                   <div>
-                    <dt className="text-xs uppercase tracking-wide text-muted-foreground">Issued</dt>
+                    <dt className="text-xs uppercase tracking-wide text-muted-foreground">Ausgestellt</dt>
                     <dd className="font-medium">{formatDate(cert.issuedAt)}</dd>
                   </div>
                 </div>
                 <div>
-                  <dt className="text-xs uppercase tracking-wide text-muted-foreground">Certificate ID</dt>
+                  <dt className="text-xs uppercase tracking-wide text-muted-foreground">Zertifikat-ID</dt>
                   <dd className="font-mono font-medium">{cert.serial}</dd>
                 </div>
               </dl>

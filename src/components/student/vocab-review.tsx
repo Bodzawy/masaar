@@ -7,13 +7,14 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { reviewVocab } from "@/app/actions/vocabulary";
+import { ArabicText } from "@/components/arabic-text";
 
 export interface VocabCard {
   reviewId: string;
-  word: string;
-  translationEn: string;
-  exampleDe: string;
-  exampleEn: string;
+  word: string; // Arabisch (mit Harakat)
+  translation: string; // Deutsch
+  exampleTarget: string; // Arabischer Beispielsatz
+  exampleTranslation: string; // Deutsche Übersetzung des Beispielsatzes
   partOfSpeech: string;
   box: number;
   dueToday: boolean;
@@ -44,7 +45,7 @@ export function VocabReview({ items }: { items: VocabCard[] }) {
             <CardContent className="p-5">
               <div className="flex items-start justify-between gap-2">
                 <div>
-                  <p className="text-lg font-semibold">{item.word}</p>
+                  <ArabicText size="lg" className="font-semibold text-foreground">{item.word}</ArabicText>
                   <p className="text-xs italic text-muted-foreground">{item.partOfSpeech}</p>
                 </div>
                 {item.dueToday ? <Badge variant="accent">Due today</Badge> : <Badge variant="muted">Box {item.box}</Badge>}
@@ -52,13 +53,15 @@ export function VocabReview({ items }: { items: VocabCard[] }) {
 
               {revealed[item.reviewId] ? (
                 <div className="mt-3 animate-fade-in">
-                  <p className="font-medium text-primary">{item.translationEn}</p>
-                  <p className="mt-2 rounded-md bg-muted px-3 py-2 text-sm">{item.exampleDe}</p>
-                  <p className="mt-1 px-1 text-xs text-muted-foreground">{item.exampleEn}</p>
+                  <p className="font-medium text-primary">{item.translation}</p>
+                  <div className="mt-2 rounded-md bg-muted px-3 py-2">
+                    <ArabicText size="base">{item.exampleTarget}</ArabicText>
+                    <p className="mt-1 border-t border-border pt-1 text-xs text-muted-foreground">{item.exampleTranslation}</p>
+                  </div>
                 </div>
               ) : (
                 <Button variant="outline" size="sm" className="mt-3" onClick={() => setRevealed((r) => ({ ...r, [item.reviewId]: true }))}>
-                  Show meaning
+                  Bedeutung anzeigen
                 </Button>
               )}
 
@@ -73,7 +76,7 @@ export function VocabReview({ items }: { items: VocabCard[] }) {
                   }}
                   className="text-destructive hover:text-destructive"
                 >
-                  <RotateCcw aria-hidden /> Again
+                  <RotateCcw aria-hidden /> Nochmal
                 </Button>
                 <Button
                   size="sm"

@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { formatDateTime } from "@/lib/utils";
 
-export const metadata = { title: "Teacher Overview" };
+export const metadata = { title: "Lehrkraft-Übersicht" };
 
 const QUALITY_LABEL: Record<string, string> = {
   GOOD_STANDING: "Good Standing", WARNING: "Warning", UNDER_REVIEW: "Under Review", SUSPENDED: "Suspended",
@@ -57,9 +57,9 @@ export default async function TeacherDashboard() {
     <div className="container max-w-6xl space-y-6 animate-fade-in">
       <header className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Guten Tag, {session.name.split(" ")[0]}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Ahlan, {session.name.split(" ")[0]}</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            {profile.isOnline ? "You are online — students can book you instantly." : "You are offline."}
+            {profile.isOnline ? "Du bist online – Lernende können dich sofort buchen." : "Du bist offline."}
           </p>
         </div>
         {/* Online toggle (server action) */}
@@ -71,19 +71,19 @@ export default async function TeacherDashboard() {
         >
           <Button type="submit" variant={profile.isOnline ? "outline" : "success"} size="lg" aria-pressed={profile.isOnline}>
             <Power aria-hidden />
-            {profile.isOnline ? "Go offline" : "Go online"}
+            {profile.isOnline ? "Offline gehen" : "Online gehen"}
           </Button>
         </form>
       </header>
 
       {/* Stats row */}
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard icon={Star} label="Average rating" value={`${(ratingsAgg._avg.overall ?? 0).toFixed(1)} ★`} sub={`${ratingsAgg._count.overall} reviews`} />
-        <StatCard icon={GraduationCap} label="Lessons completed" value={profile.completedLessons.toLocaleString()} />
-        <StatCard icon={TrendingUp} label="Cancellation rate" value={`${profile.cancellationRatePct}%`} />
+        <StatCard icon={Star} label="Durchschnittsbewertung" value={`${(ratingsAgg._avg.overall ?? 0).toFixed(1)} ★`} sub={`${ratingsAgg._count.overall} reviews`} />
+        <StatCard icon={GraduationCap} label="Abgeschlossene Einheiten" value={profile.completedLessons.toLocaleString()} />
+        <StatCard icon={TrendingUp} label="Stornierungsquote" value={`${profile.cancellationRatePct}%`} />
         <Card>
           <CardContent className="p-5">
-            <p className="flex items-center gap-1.5 text-xs uppercase tracking-wide text-muted-foreground">Quality score</p>
+            <p className="flex items-center gap-1.5 text-xs uppercase tracking-wide text-muted-foreground">Qualitätspunktzahl</p>
             <p className="mt-1 text-2xl font-semibold tabular-nums">{profile.qualityScore}<span className="text-sm font-normal text-muted-foreground">/100</span></p>
             <Progress
               value={profile.qualityScore}
@@ -101,12 +101,12 @@ export default async function TeacherDashboard() {
           <CardContent className="flex flex-wrap items-center gap-4 p-5">
             <Video className="h-6 w-6 shrink-0 text-accent" aria-hidden />
             <div className="min-w-0 flex-1">
-              <p className="font-semibold">Incoming instant lesson request</p>
+              <p className="font-semibold">Eingehende Sofort-Buchung</p>
               <p className="text-sm text-muted-foreground truncate">
                 {instantRequests[0]!.student.name} · {instantRequests[0]!.lesson.titleDe}
               </p>
             </div>
-            <Button asChild><Link href={`/teacher/classroom/${instantRequests[0]!.id}`}>Open classroom</Link></Button>
+            <Button asChild><Link href={`/teacher/classroom/${instantRequests[0]!.id}`}>Klassenzimmer öffnen</Link></Button>
           </CardContent>
         </Card>
       )}
@@ -116,14 +116,14 @@ export default async function TeacherDashboard() {
         <Card className="lg:col-span-2">
           <CardHeader className="flex-row items-center justify-between space-y-0 pb-3">
             <CardTitle className="text-base">Today&apos;s schedule</CardTitle>
-            <Button variant="ghost" size="sm" asChild><Link href="/teacher/upcoming">All upcoming</Link></Button>
+            <Button variant="ghost" size="sm" asChild><Link href="/teacher/upcoming">Alle Termine</Link></Button>
           </CardHeader>
           <CardContent>
             {todayBookings.length === 0 ? (
               <div className="rounded-lg border border-dashed border-border p-8 text-center">
                 <CalendarClock className="mx-auto h-7 w-7 text-muted-foreground/50" aria-hidden />
                 <p className="mt-2 text-sm text-muted-foreground">
-                  No lessons today.{nextBooking ? ` Next: ${formatDateTime(nextBooking.scheduledAt)} with ${nextBooking.student.name}.` : ""}
+                  Heute keine Stunden.{nextBooking ? ` Nächste: ${formatDateTime(nextBooking.scheduledAt)} bei ${nextBooking.student.name}.` : ""}
                 </p>
               </div>
             ) : (
@@ -149,10 +149,10 @@ export default async function TeacherDashboard() {
 
         {/* Homework queue preview */}
         <Card>
-          <CardHeader className="pb-3"><CardTitle className="text-base">Homework to review</CardTitle></CardHeader>
+          <CardHeader className="pb-3"><CardTitle className="text-base">Zu korrigierende Hausaufgaben</CardTitle></CardHeader>
           <CardContent>
             {pendingSubs.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Nothing waiting — great!</p>
+              <p className="text-sm text-muted-foreground">Alles erledigt – stark!</p>
             ) : (
               <ul className="space-y-2.5">
                 {pendingSubs.map((sub) => (
@@ -163,7 +163,7 @@ export default async function TeacherDashboard() {
                     </Link>
                   </li>
                 ))}
-                <li><Button variant="ghost" size="sm" asChild className="w-full"><Link href="/teacher/review">Open review queue</Link></Button></li>
+                <li><Button variant="ghost" size="sm" asChild className="w-full"><Link href="/teacher/review">Korrektur-Warteschlange</Link></Button></li>
               </ul>
             )}
           </CardContent>

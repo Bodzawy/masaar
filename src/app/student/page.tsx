@@ -51,7 +51,7 @@ export default async function StudentDashboard() {
       include: { author: true },
     }).catch(() => []),
     db.enrollment.findMany({ where: { studentId: session.userId }, include: { level: true } }),
-    // Weekly study time derived from completed lessons + quiz/exam activity in the last 7 days.
+    // Lernzeit diese Woche derived from completed lessons + quiz/exam activity in the last 7 days.
     (async () => {
       const since = new Date(Date.now() - 7 * 86_400_000);
       const [lessonsDone, attempts] = await Promise.all([
@@ -115,9 +115,9 @@ export default async function StudentDashboard() {
     return (
       <div className="container max-w-2xl py-16 text-center">
         <GraduationCap className="mx-auto h-12 w-12 text-muted-foreground" aria-hidden />
-        <h1 className="mt-4 text-xl font-semibold">Welcome to DeutschPath</h1>
-        <p className="mt-2 text-muted-foreground">Complete onboarding to start your learning path.</p>
-        <Button className="mt-6" asChild><Link href="/onboarding">Start onboarding</Link></Button>
+        <h1 className="mt-4 text-xl font-semibold">Willkommen bei Masaar</h1>
+        <p className="mt-2 text-muted-foreground">Schließe das Onboarding ab, um zu starten.</p>
+        <Button className="mt-6" asChild><Link href="/onboarding">Onboarding starten</Link></Button>
       </div>
     );
   }
@@ -128,7 +128,7 @@ export default async function StudentDashboard() {
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">{tr(greetingKey, { name: session.name.split(" ")[0] ?? "" })}</h1>
-          <p className="text-sm text-muted-foreground">Level {activeEnrollment.level.code} · {activeEnrollment.level.title}</p>
+          <p className="text-sm text-muted-foreground">Niveau {activeEnrollment.level.code} · {activeEnrollment.level.title}</p>
         </div>
         <Badge variant="secondary" className="gap-1.5 px-3 py-1">
           <Flame className="h-3.5 w-3.5 text-accent" aria-hidden />
@@ -160,8 +160,8 @@ export default async function StudentDashboard() {
             </Button>
             <span className="text-center text-xs text-white/70">
               {upcomingBooking
-                ? `Next class: ${formatDateTime(upcomingBooking.scheduledAt)}`
-                : "No class scheduled"}
+                ? `Nächste Stunde: ${formatDateTime(upcomingBooking.scheduledAt)}`
+                : "Noch keine Stunde gebucht"}
             </span>
           </div>
         </div>
@@ -177,7 +177,7 @@ export default async function StudentDashboard() {
                 <CardTitle>{tr("dashboard.tasksDue")}</CardTitle>
                 <CardDescription>{tr("lesson.tasks")}</CardDescription>
               </div>
-              <Button variant="ghost" size="sm" asChild><Link href="/student/learning-path">View path</Link></Button>
+              <Button variant="ghost" size="sm" asChild><Link href="/student/learning-path">Lernweg</Link></Button>
             </CardHeader>
             <CardContent className="grid gap-3 sm:grid-cols-3">
               {tasks.map((task) => (
@@ -194,7 +194,7 @@ export default async function StudentDashboard() {
                 </Link>
               ))}
               {tasks.length === 0 && (
-                <p className="text-sm text-muted-foreground sm:col-span-3">All tasks done — great work! Start the next lesson.</p>
+                <p className="text-sm text-muted-foreground sm:col-span-3">Alles erledigt – stark! Die nächste Lektion wartet.</p>
               )}
             </CardContent>
           </Card>
@@ -287,7 +287,7 @@ export default async function StudentDashboard() {
               <SkillRadarMini data={skills.map((s) => ({ skill: s.skill, score: s.score }))} />
               {weakestSkill && (
                 <p className="mt-2 rounded-md bg-accent/10 px-3 py-2 text-xs text-accent-foreground">
-                  Focus suggestion: practise <strong>{weakestSkill.skill.toLowerCase()}</strong> ({weakestSkill.score}/100)
+                  Fokus-Empfehlung: <strong>{weakestSkill.skill.toLowerCase()}</strong> trainieren ({weakestSkill.score}/100)
                 </p>
               )}
             </CardContent>
@@ -328,7 +328,7 @@ export default async function StudentDashboard() {
                   const state = levelStateFor(code, activeEnrollment.level.code, enrollmentsByCode);
                   return (
                     <li key={code} className="flex items-center justify-between rounded-md px-2 py-1.5 odd:bg-muted/60">
-                      <span className={state === "Current" ? "font-semibold text-primary" : ""}>{code}</span>
+                      <span className={state === "Aktuell" ? "font-semibold text-primary" : ""}>{code}</span>
                       <span className="text-xs text-muted-foreground">{state}</span>
                     </li>
                   );
@@ -346,12 +346,12 @@ function levelStateFor(
   code: string,
   currentCode: string,
   enrollmentsByCode: Map<string, { status: string }>
-): "Completed" | "Current" | "In progress" | "Locked" {
-  if (code === currentCode) return "Current";
+): "Abgeschlossen" | "Aktuell" | "Laufend" | "Gesperrt" {
+  if (code === currentCode) return "Aktuell";
   const enrollment = enrollmentsByCode.get(code);
-  if (enrollment?.status === "COMPLETED") return "Completed";
-  if (enrollment) return "In progress";
+  if (enrollment?.status === "COMPLETED") return "Abgeschlossen";
+  if (enrollment) return "Laufend";
   const order = CEFR_LEVELS.indexOf(code as (typeof CEFR_LEVELS)[number]);
   const currentOrder = CEFR_LEVELS.indexOf(currentCode as (typeof CEFR_LEVELS)[number]);
-  return order > currentOrder ? "Locked" : "Locked";
+  return "Gesperrt";
 }

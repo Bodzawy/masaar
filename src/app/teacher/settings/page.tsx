@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-export const metadata = { title: "Settings" };
+export const metadata = { title: "Einstellungen" };
 
 export default async function TeacherSettingsPage() {
   const session = await requireRole("TEACHER");
@@ -15,20 +15,20 @@ export default async function TeacherSettingsPage() {
   return (
     <div className="container max-w-2xl space-y-6 animate-fade-in">
       <header>
-        <h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
-        <p className="mt-1 text-sm text-muted-foreground">Teaching profile details.</p>
+        <h1 className="text-2xl font-semibold tracking-tight">Einstellungen</h1>
+        <p className="mt-1 text-sm text-muted-foreground">Details zum Lehrprofil.</p>
       </header>
       <Card>
         <CardHeader className="pb-3"><CardTitle className="text-base">Profile</CardTitle></CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-1.5"><Label>Rank</Label><div><Badge variant="default">{profile.rank}</Badge></div></div>
-          <div className="space-y-1.5"><Label>Certification</Label><Input defaultValue={profile.certification} readOnly /></div>
+          <div className="space-y-1.5"><Label>Zertifizierung</Label><Input defaultValue={profile.certification} readOnly /></div>
           <div className="space-y-1.5 sm:col-span-2"><Label>Headline</Label><Input defaultValue={profile.headline} readOnly /></div>
-          <div className="space-y-1.5"><Label>Languages</Label><Input defaultValue={profile.languages.join(", ")} readOnly /></div>
-          <div className="space-y-1.5"><Label>Specialties</Label><Input defaultValue={profile.specialties.join(", ")} readOnly /></div>
-          <div className="space-y-1.5"><Label>Hourly rate</Label><Input defaultValue={`${(profile.hourlyRateCents / 100).toFixed(2)} EUR`} readOnly /></div>
-          <div className="space-y-1.5"><Label>Response time</Label><Input defaultValue={`~${profile.responseTimeMinutes} min`} readOnly /></div>
-          <p className="text-xs text-muted-foreground sm:col-span-2">Profile changes go through Teacher Manager review in production.</p>
+          <div className="space-y-1.5"><Label>Sprachen</Label><Input defaultValue={profile.languages.join(", ")} readOnly /></div>
+          <div className="space-y-1.5"><Label>Schwerpunkte</Label><Input defaultValue={profile.specialties.join(", ")} readOnly /></div>
+          <div className="space-y-1.5"><Label>Stundensatz</Label><Input defaultValue={`${(profile.hourlyRateCents / 100).toFixed(2)} EUR`} readOnly /></div>
+          <div className="space-y-1.5"><Label>Antwortzeit</Label><Input defaultValue={`~${profile.responseTimeMinutes} min`} readOnly /></div>
+          <p className="text-xs text-muted-foreground sm:col-span-2">Profiländerungen werden in Produktion vom Teacher Manager geprüft.</p>
         </CardContent>
       </Card>
     </div>

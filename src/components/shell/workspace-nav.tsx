@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { Dict } from "@/lib/i18n/en";
+import type { Dict } from "@/lib/i18n/de";
 import { cn } from "@/lib/utils";
 import { NAV_ICONS } from "@/config/nav";
 

@@ -4,8 +4,9 @@ import { db } from "@/lib/db";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Bell, BellOff } from "lucide-react";
+import { formatDateTime } from "@/lib/utils";
 
-export const metadata = { title: "Notifications" };
+export const metadata = { title: "Benachrichtigungen" };
 
 export default async function NotificationsPage() {
   const session = await requireRole("STUDENT");
@@ -18,8 +19,8 @@ export default async function NotificationsPage() {
   return (
     <div className="container max-w-3xl space-y-6 animate-fade-in">
       <header>
-        <h1 className="text-2xl font-semibold tracking-tight">Notifications</h1>
-        <p className="mt-1 text-sm text-muted-foreground">Lesson reminders, feedback and platform updates.</p>
+        <h1 className="text-2xl font-semibold tracking-tight">Benachrichtigungen</h1>
+        <p className="mt-1 text-sm text-muted-foreground">Stunden-Erinnerungen, Feedback und Plattform-Updates.</p>
       </header>
 
       {notifications.length === 0 ? (
@@ -40,9 +41,9 @@ export default async function NotificationsPage() {
                 <Bell className={`mt-0.5 h-4 w-4 shrink-0 ${n.readAt ? "text-muted-foreground" : "text-primary"}`} aria-hidden />
                 <span className="min-w-0 flex-1">
                   <span className={`block text-sm ${n.readAt ? "text-muted-foreground" : "font-medium"}`}>{n.titleKey}</span>
-                  <time className="mt-0.5 block text-xs text-muted-foreground">{n.createdAt.toLocaleString("en-GB")}</time>
+                  <time className="mt-0.5 block text-xs text-muted-foreground">{formatDateTime(n.createdAt)}</time>
                 </span>
-                {!n.readAt && <Badge variant="accent">New</Badge>}
+                {!n.readAt && <Badge variant="accent">Neu</Badge>}
               </Link>
             </li>
           ))}

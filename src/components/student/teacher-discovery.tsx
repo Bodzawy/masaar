@@ -82,7 +82,7 @@ export function TeacherDiscovery({
       <div className="flex flex-wrap items-center gap-2.5">
         <div className="relative min-w-[220px] flex-1">
           <Search className="absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
-          <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search name, specialty…" className="ps-9" aria-label="Search teachers" />
+          <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Name, Schwerpunkt suchen…" className="ps-9" aria-label="Lehrkräfte durchsuchen" />
         </div>
         <Select value={minRating} onValueChange={setMinRating}>
           <SelectTrigger className="w-[150px]" aria-label="Minimum rating">
@@ -90,7 +90,7 @@ export function TeacherDiscovery({
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="0">Any rating</SelectItem>
+            <SelectItem value="0">Beliebige Bewertung</SelectItem>
             <SelectItem value="4">4.0+</SelectItem>
             <SelectItem value="4.5">4.5+</SelectItem>
             <SelectItem value="4.8">4.8+</SelectItem>
@@ -101,7 +101,7 @@ export function TeacherDiscovery({
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Any language</SelectItem>
+            <SelectItem value="all">Jegliche Sprache</SelectItem>
             {languages.map((l) => <SelectItem key={l} value={l}>{l}</SelectItem>)}
           </SelectContent>
         </Select>
@@ -115,7 +115,7 @@ export function TeacherDiscovery({
           )}
         >
           <span className={cn("h-2 w-2 rounded-full", onlineOnly ? "bg-success" : "bg-muted-foreground")} aria-hidden />
-          Online only
+          Nur online
         </button>
         <button
           type="button"
@@ -127,13 +127,13 @@ export function TeacherDiscovery({
           )}
         >
           <Heart className={cn("h-4 w-4", favoritesFirst && "fill-current")} aria-hidden />
-          Favorites first
+          Favoriten zuerst
         </button>
       </div>
 
       {lessonContext && (
         <p className="rounded-lg border border-primary/25 bg-primary/5 px-4 py-2.5 text-sm">
-          Matching teachers for your next lesson: <strong>{lessonContext.titleDe}</strong> ({lessonContext.level}) — only qualified teachers are shown.
+          Passende Lehrkräfte für deine nächste Lektion: <strong>{lessonContext.titleDe}</strong> ({lessonContext.level}) – nur qualifizierte Lehrkräfte werden angezeigt.
         </p>
       )}
 
@@ -184,15 +184,15 @@ export function TeacherDiscovery({
 
                   <dl className="mt-4 grid grid-cols-3 gap-2 text-center">
                     <div className="rounded-md bg-muted/70 px-2 py-1.5">
-                      <dt className="text-[10px] uppercase tracking-wide text-muted-foreground">Rating</dt>
+                      <dt className="text-[10px] uppercase tracking-wide text-muted-foreground">Bewertung</dt>
                       <dd className="text-sm font-semibold flex items-center justify-center gap-1"><Star className="h-3 w-3 fill-accent text-accent" aria-hidden />{t.avgRating.toFixed(1)}</dd>
                     </div>
                     <div className="rounded-md bg-muted/70 px-2 py-1.5">
-                      <dt className="text-[10px] uppercase tracking-wide text-muted-foreground">Lessons</dt>
+                      <dt className="text-[10px] uppercase tracking-wide text-muted-foreground">Einheiten</dt>
                       <dd className="text-sm font-semibold">{t.completedLessons.toLocaleString()}</dd>
                     </div>
                     <div className="rounded-md bg-muted/70 px-2 py-1.5">
-                      <dt className="text-[10px] uppercase tracking-wide text-muted-foreground">Response</dt>
+                      <dt className="text-[10px] uppercase tracking-wide text-muted-foreground">Antwortzeit</dt>
                       <dd className="flex items-center justify-center gap-1 text-sm font-semibold"><Clock3 className="h-3 w-3" aria-hidden />{t.responseTimeMinutes}m</dd>
                     </div>
                   </dl>
@@ -205,15 +205,15 @@ export function TeacherDiscovery({
 
                   <div className="flex items-center justify-between gap-2">
                     <div>
-                      <p className="text-sm font-semibold">{formatPrice(t.hourlyRateCents)}<span className="text-xs font-normal text-muted-foreground"> / 50 min</span></p>
+                      <p className="text-sm font-semibold">{formatPrice(t.hourlyRateCents)}<span className="text-xs font-normal text-muted-foreground"> / 50 Min.</span></p>
                       <p className={cn("text-xs font-medium", t.isOnline ? "text-success" : "text-muted-foreground")}>
-                        {t.isOnline ? "Available now" : "Offline — schedule instead"}
+                        {t.isOnline ? "Jetzt verfügbar" : "Offline – stattdessen planen"}
                       </p>
                     </div>
                     <div className="flex gap-2">
                       <Button size="sm" variant="outline" onClick={() => setBookingTeacher({ t, mode: "SCHEDULED" })}>
                         <CalendarPlus aria-hidden />
-                        <span className="hidden sm:inline">Schedule</span>
+                        <span className="hidden sm:inline">Planen</span>
                       </Button>
                       <Button
                         size="sm"
@@ -251,17 +251,17 @@ export function TeacherDiscovery({
               </DialogHeader>
               <p className="text-sm leading-relaxed">{profileTeacher.headline}. {profileTeacher.bio}</p>
               <div className="grid grid-cols-3 gap-2 text-center">
-                <Stat label="Rating" value={`${profileTeacher.avgRating.toFixed(1)} ★`} sub={`${profileTeacher.ratingCount} reviews`} />
-                <Stat label="Lessons taught" value={profileTeacher.completedLessons.toLocaleString()} />
-                <Stat label="Quality score" value={`${profileTeacher.qualityScore}/100`} sub={qualityLabel(profileTeacher.qualityScore)} />
+                <Stat label="Bewertung" value={`${profileTeacher.avgRating.toFixed(1)} ★`} sub={`${profileTeacher.ratingCount} Bewertungen`} />
+                <Stat label="Einheiten" value={profileTeacher.completedLessons.toLocaleString()} />
+                <Stat label="Qualitätspunktzahl" value={`${profileTeacher.qualityScore}/100`} sub={qualityLabel(profileTeacher.qualityScore)} />
               </div>
               <div className="space-y-1.5 text-sm">
-                <p><span className="font-medium">Languages:</span> {profileTeacher.languages.join(", ")}</p>
-                <p><span className="font-medium">Specialties:</span> {profileTeacher.specialties.join(", ")}</p>
-                <p><span className="font-medium">Response time:</span> ~{profileTeacher.responseTimeMinutes} minutes</p>
+                <p><span className="font-medium">Sprachen:</span> {profileTeacher.languages.join(", ")}</p>
+                <p><span className="font-medium">Schwerpunkte:</span> {profileTeacher.specialties.join(", ")}</p>
+                <p><span className="font-medium">Antwortzeit:</span> ~{profileTeacher.responseTimeMinutes} Minuten</p>
               </div>
               <div className="rounded-lg border border-border bg-muted/50 p-3 text-xs leading-relaxed text-muted-foreground">
-                Reviews highlight structured lessons and clear explanations. Detailed review history is shown after you take lessons with this teacher.
+                Bewertungen heben strukturierte Stunden und klare Erklärungen hervor. Detaillierte Bewertungen siehst du nach eigenen Stunden mit dieser Lehrkraft.
               </div>
             </>
           )}
@@ -275,23 +275,23 @@ export function TeacherDiscovery({
             <>
               <DialogHeader>
                 <DialogTitle>
-                  {bookingTeacher.mode === "INSTANT" ? "Start an instant lesson?" : "Confirm scheduled lesson"}
+                  {bookingTeacher.mode === "INSTANT" ? "Sofort Unterricht starten?" : "Unterrichtsstunde bestätigen"}
                 </DialogTitle>
                 <DialogDescription asChild>
                   <div className="pt-2 text-sm leading-relaxed">
                     <p><strong>{lessonContext?.titleDe ?? "Your current lesson"}</strong> · 50 min with <strong>{bookingTeacher.t.name}</strong>.</p>
-                    <p className="mt-2">Price: <strong>{formatPrice(bookingTeacher.t.hourlyRateCents)}</strong> (1 lesson credit).</p>
+                    <p className="mt-2">Price: <strong>{formatPrice(bookingTeacher.t.hourlyRateCents)}</strong> (1 Unterrichtsguthaben).</p>
                     <p className="mt-2 rounded-md bg-muted px-3 py-2 text-xs">
-                      Free cancellation up to 24h before the start; later cancellations forfeit one lesson credit.
+                      Kostenlose Stornierung bis 24 Std. vor Beginn; später verliert man ein Unterrichtsguthaben.
                     </p>
                   </div>
                 </DialogDescription>
               </DialogHeader>
               <DialogFooter>
-                <Button variant="ghost" onClick={() => setBookingTeacher(null)}>Cancel</Button>
+                <Button variant="ghost" onClick={() => setBookingTeacher(null)}>Abbrechen</Button>
                 <Button disabled={pending} onClick={confirmBooking}>
                   {pending && <Loader2 className="animate-spin" aria-hidden />}
-                  {bookingTeacher.mode === "INSTANT" ? "Start lesson" : "Book & pay 1 credit"}
+                  {bookingTeacher.mode === "INSTANT" ? "Unterricht starten" : "Buchen (1 Guthaben)"}
                 </Button>
               </DialogFooter>
             </>
@@ -319,10 +319,10 @@ function Stat({ label, value, sub }: { label: string; value: string; sub?: strin
 }
 
 function qualityLabel(score: number): string {
-  if (score >= 80) return "Good Standing";
-  if (score >= 70) return "Warning";
-  if (score >= 60) return "Under Review";
-  return "Suspended";
+  if (score >= 80) return "Gute Qualität";
+  if (score >= 70) return "Warnung";
+  if (score >= 60) return "In Prüfung";
+  return "Gesperrt";
 }
 
 function FavoriteButton({ teacherId, initial }: { teacherId: string; initial: boolean }) {
@@ -352,17 +352,17 @@ function EmptyQueue({ joined, onJoin, pending, hasFilters }: { joined: boolean; 
       <CardContent className="flex flex-col items-center px-6 py-14 text-center">
         <Users2 className="h-10 w-10 text-muted-foreground/50" aria-hidden />
         <h3 className="mt-4 font-semibold">
-          {hasFilters ? "No teachers match your filters" : "No matching teacher online right now"}
+          {hasFilters ? "Keine Lehrkraft passt zu den Filtern" : "Gerade ist keine passende Lehrkraft online"}
         </h3>
         <p className="mt-1 max-w-md text-sm text-muted-foreground">
           {hasFilters
-            ? "Try removing some filters to see more teachers."
-            : "Join the waiting queue and we'll notify you as soon as a qualified teacher comes online — or schedule a session for later."}
+            ? "Entferne ein paar Filter, um mehr Lehrkräfte zu sehen."
+            : "Trag dich in die Warteschlange ein – wir benachrichtigen dich, sobald eine qualifizierte Lehrkraft online geht. Oder plane eine Stunde für später."}
         </p>
         {!hasFilters && (
           <Button className="mt-5" variant="accent" disabled={joined || pending} onClick={onJoin}>
             {pending && <Loader2 className="animate-spin" aria-hidden />}
-            {joined ? "We will notify you when a teacher is available" : "Notify me when available"}
+            {joined ? "Wir melden uns, sobald eine Lehrkraft verfügbar ist" : "Mich benachrichtigen"}
           </Button>
         )}
       </CardContent>

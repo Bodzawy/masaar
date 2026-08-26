@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { saveHomework } from "@/app/actions/homework";
+import { containsArabic } from "@/components/arabic-text";
 
 export interface HomeworkData {
   id: string;
@@ -34,10 +35,10 @@ export interface SubmissionView {
 }
 
 const STATUS_BADGES = {
-  DRAFT: { label: "Draft", variant: "muted" as const },
-  SUBMITTED: { label: "Awaiting grading", variant: "warning" as const },
-  GRADED: { label: "Graded", variant: "success" as const },
-  RETURNED: { label: "Returned", variant: "accent" as const },
+  DRAFT: { label: "Entwurf", variant: "muted" as const },
+  SUBMITTED: { label: "Wartet auf Korrektur", variant: "warning" as const },
+  GRADED: { label: "Korrigiert", variant: "success" as const },
+  RETURNED: { label: "Zurückgegeben", variant: "accent" as const },
 };
 
 export function HomeworkForm({
@@ -66,12 +67,12 @@ export function HomeworkForm({
         : undefined;
       const res = await saveHomework({ homeworkId: homework.id, writingText: writing, answers, recordingMeta }, submit);
       if (!res.ok) {
-        setMsg({ tone: "err", text: res.error ?? "Could not save" });
+        setMsg({ tone: "err", text: res.error ?? "Speichern fehlgeschlagen" });
       } else {
         setMsg(
           submit
-            ? { tone: "ok", text: "Homework submitted — your teacher will grade it soon." }
-            : { tone: "ok", text: "Draft saved." }
+            ? { tone: "ok", text: "Hausaufgabe eingereicht – deine Lehrkraft korrigiert sie bald." }
+            : { tone: "ok", text: "Entwurf gespeichert." }
         );
         setConfirming(false);
         if (submit) setTimeout(() => window.location.reload(), 800);
@@ -100,11 +101,14 @@ export function HomeworkForm({
             )}
             <Textarea
               rows={9}
+              dir="auto"
+              lang="ar"
+              className={containsArabic(writing) ? "font-arabic text-lg leading-loose" : ""}
               value={writing}
               onChange={(e) => setWriting(e.target.value)}
               disabled={locked || pending}
-              placeholder="Write here…"
-              aria-label="Writing task answer"
+              placeholder="Hier schreiben… (Antworten auf Arabisch sind willkommen)"
+              aria-label="Schreibaufgabe"
             />
             <p className="text-xs text-muted-foreground">{writing.trim().split(/\s+/).filter(Boolean).length} words</p>
           </CardContent>
@@ -134,7 +138,7 @@ export function HomeworkForm({
       <div className="space-y-6 lg:col-span-2">
         {/* Voice note demo upload */}
         <Card>
-          <CardHeader className="pb-3"><CardTitle className="flex items-center gap-2 text-base"><Mic className="h-4 w-4 text-primary" aria-hidden /> Voice note (demo)</CardTitle></CardHeader>
+          <CardHeader className="pb-3"><CardTitle className="flex items-center gap-2 text-base"><Mic className="h-4 w-4 text-primary" aria-hidden /> Sprachnachricht (Demo)</CardTitle></CardHeader>
           <CardContent className="space-y-2">
             <Input
               type="file"
@@ -152,10 +156,10 @@ export function HomeworkForm({
               aria-label="Attach a voice note"
             />
             <p className="text-xs leading-relaxed text-muted-foreground">
-              Demo upload: only the file name and metadata are recorded — audio content is not stored in this MVP.
+              Demo-Upload: Nur Dateiname und Metadaten werden erfasst – Audio wird nicht gespeichert.
             </p>
             {recordingName && (
-              <Badge variant="secondary" className="max-w-full truncate">Attached: {recordingName}</Badge>
+              <Badge variant="secondary" className="max-w-full truncate">Angehängt: {recordingName}</Badge>
             )}
           </CardContent>
         </Card>
@@ -165,10 +169,10 @@ export function HomeworkForm({
           <Card>
             <CardContent className="space-y-3 pt-6">
               <Button className="w-full" disabled={pending || writing.trim().length < 20} onClick={() => setConfirming(true)}>
-                <Send aria-hidden /> Submit homework
+                <Send aria-hidden /> Hausaufgabe einreichen
               </Button>
               <Button variant="outline" className="w-full" disabled={pending} onClick={() => persist(false)}>
-                <Save aria-hidden /> Save draft
+                <Save aria-hidden /> Entwurf speichern
               </Button>
               {msg && (
                 <p role="status" className={`rounded-md px-3 py-2 text-sm ${msg.tone === "ok" ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive"}`}>
@@ -183,10 +187,10 @@ export function HomeworkForm({
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center justify-between text-base">
-                Teacher feedback
+                Feedback der Lehrkraft
                 <Badge variant="success">{initial.feedback.score}/{homework.maxScore}</Badge>
               </CardTitle>
-              <CardDescription>Graded {new Date(initial.feedback.gradedAt).toLocaleDateString()}</CardDescription>
+              <CardDescription>Korrigiert am {new Date(initial.feedback.gradedAt).toLocaleDateString("de-DE")}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
               <p className="leading-relaxed">{initial.feedback.feedbackText}</p>
@@ -202,7 +206,7 @@ export function HomeworkForm({
               )}
               {initial.feedback.recommendedPractice && (
                 <p className="rounded-md bg-accent/10 px-3 py-2 text-xs text-accent-foreground">
-                  Recommended practice: {initial.feedback.recommendedPractice}
+                  Empfohlene Übungen: {initial.feedback.recommendedPractice}
                 </p>
               )}
             </CardContent>
@@ -215,12 +219,12 @@ export function HomeworkForm({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" role="dialog" aria-modal="true" onClick={() => setConfirming(false)}>
           <Card className="w-full max-w-md animate-scale-in" onClick={(e) => e.stopPropagation()}>
             <CardContent className="space-y-4 p-6">
-              <h2 className="font-semibold">Submit homework?</h2>
-              <p className="text-sm text-muted-foreground">You cannot edit after submitting.</p>
+              <h2 className="font-semibold">Hausaufgabe einreichen?</h2>
+              <p className="text-sm text-muted-foreground">Nach dem Absenden ist keine Bearbeitung mehr möglich.</p>
               <div className="flex justify-end gap-2">
-                <Button variant="ghost" onClick={() => setConfirming(false)}>Cancel</Button>
+                <Button variant="ghost" onClick={() => setConfirming(false)}>Abbrechen</Button>
                 <Button disabled={pending} onClick={() => persist(true)}>
-                  {pending && <Loader2 className="animate-spin" aria-hidden />} Submit
+                  {pending && <Loader2 className="animate-spin" aria-hidden />} Absenden
                 </Button>
               </div>
             </CardContent>

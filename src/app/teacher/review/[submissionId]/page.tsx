@@ -23,7 +23,7 @@ export default async function GradePage({ params }: { params: Promise<{ submissi
   return (
     <div className="container max-w-6xl space-y-4 py-2 animate-fade-in">
       <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground">
-        <Link href="/teacher/review" className="hover:text-foreground">← Review queue</Link>
+        <Link href="/teacher/review" className="hover:text-foreground">← Korrektur-Warteschlange</Link>
       </nav>
       <GradeForm
         submissionId={submission.id}

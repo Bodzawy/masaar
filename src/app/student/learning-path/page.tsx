@@ -41,9 +41,9 @@ export default async function LearningPathPage() {
   return (
     <div className="container max-w-4xl space-y-8 animate-fade-in">
       <header>
-        <h1 className="text-2xl font-semibold tracking-tight">My Learning Path</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Mein Lernweg</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Your structured journey from A1 to C2. Complete each step to unlock the next.
+          Deine strukturierte Reise von A1 bis C2. Jeder Schritt schaltet den nächsten frei.
         </p>
       </header>
 
@@ -75,7 +75,7 @@ export default async function LearningPathPage() {
                 {path && (
                   <Badge variant="default" className="shrink-0">
                     {path.chapters.reduce((n, c) => n + c.lessons.filter((l) => l.state === "COMPLETED").length, 0)}
-                    /{path.chapters.reduce((n, c) => n + c.lessons.length, 0)} lessons
+                    /{path.chapters.reduce((n, c) => n + c.lessons.length, 0)} Lektionen
                   </Badge>
                 )}
               </div>
@@ -94,7 +94,7 @@ export default async function LearningPathPage() {
                         <span className="text-sm text-muted-foreground hidden sm:inline">·</span>
                         <span className="text-sm text-muted-foreground hidden sm:inline">{chapter.title}</span>
                         {!chapter.lessonsOpen && (
-                          <Badge variant="muted" className="ms-auto gap-1"><Lock className="h-3 w-3" /> Pass previous exam to open</Badge>
+                          <Badge variant="muted" className="ms-auto gap-1"><Lock className="h-3 w-3" /> Vorherige Prüfung bestehen</Badge>
                         )}
                       </div>
 
@@ -112,7 +112,7 @@ export default async function LearningPathPage() {
                                 <p className="truncate text-sm font-medium">{lesson.titleDe}</p>
                                 <p className="truncate text-xs text-muted-foreground">
                                   Lesson {li + 1}
-                                  {lesson.state === "COMPLETED" ? " · Completed" : lesson.state === "IN_PROGRESS" ? " · Continue" : lesson.state === "AVAILABLE" ? ` · ${lesson.durationMinutes} min` : ""}
+                                  {lesson.state === "COMPLETED" ? " · Abgeschlossen" : lesson.state === "IN_PROGRESS" ? " · Weitermachen" : lesson.state === "AVAILABLE" ? ` · ${lesson.durationMinutes} Min.` : ""}
                                 </p>
                               </div>
                               <div className="hidden shrink-0 gap-1 sm:flex">
@@ -129,7 +129,7 @@ export default async function LearningPathPage() {
                           {chapter.examPassed ? (
                             <div className="flex items-center gap-3 rounded-lg border border-success/40 bg-success/5 px-4 py-3">
                               <ClipboardCheck className="h-5 w-5 text-success" aria-hidden />
-                              <p className="flex-1 text-sm font-medium">Chapter exam passed</p>
+                              <p className="flex-1 text-sm font-medium">Kapitelprüfung bestanden</p>
                               <Badge variant="success">✓</Badge>
                             </div>
                           ) : chapter.examUnlocked && chapter.lessonsOpen ? (
@@ -138,14 +138,14 @@ export default async function LearningPathPage() {
                               className="flex items-center gap-3 rounded-lg border border-accent/50 bg-accent/5 px-4 py-3 transition-colors hover:bg-accent/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                             >
                               <ClipboardCheck className="h-5 w-5 text-accent" aria-hidden />
-                              <p className="flex-1 text-sm font-medium">Chapter exam ready</p>
-                              <Badge variant="accent">Pass mark {PROGRESSION.examPassPercent}%</Badge>
+                              <p className="flex-1 text-sm font-medium">Kapitelprüfung bereit</p>
+                              <Badge variant="accent">Bestehensgrenze {PROGRESSION.examPassPercent}%</Badge>
                               <ArrowRight className="h-4 w-4 text-accent rtl:rotate-180" aria-hidden />
                             </Link>
                           ) : (
                             <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/40 px-4 py-3 opacity-75">
                               <Lock className="h-4 w-4 text-muted-foreground" aria-hidden />
-                              <p className="flex-1 text-sm text-muted-foreground">Chapter exam unlocks when all lessons are complete.</p>
+                              <p className="flex-1 text-sm text-muted-foreground">Die Kapitelprüfung wird frei, wenn alle Lektionen abgeschlossen sind.</p>
                             </div>
                           )}
                         </li>
@@ -160,17 +160,17 @@ export default async function LearningPathPage() {
                     <div className="flex flex-wrap items-center gap-3">
                       <Award className={`h-5 w-5 ${path.finalExam.passed ? "text-success" : path.finalExam.unlocked ? "text-accent" : "text-muted-foreground"}`} aria-hidden />
                       <div className="min-w-0 flex-1">
-                        <p className="text-sm font-semibold">Final level exam ({currentCode})</p>
+                        <p className="text-sm font-semibold">Abschlussprüfung ({currentCode})</p>
                         <p className="text-xs text-muted-foreground">
                           {path.finalExam.passed
-                            ? "Passed — certificate issued."
+                            ? "Bestanden – Zertifikat ausgestellt."
                             : path.finalExam.unlocked
-                              ? "Eligible: all chapter exams passed. Proctoring required."
-                              : "Unlocks after you pass every chapter exam."}
+                              ? "Zugelassen: Alle Kapitelprüfungen bestanden. Mit Prüfungsaufsicht."
+                              : "Wird frei, sobald alle Kapitelprüfungen bestanden sind."}
                         </p>
                       </div>
                       {path.finalExam.unlocked && !path.finalExam.passed && (
-                        <Button size="sm" asChild><Link href="/student/exams">Schedule exam</Link></Button>
+                        <Button size="sm" asChild><Link href="/student/exams">Prüfung planen</Link></Button>
                       )}
                     </div>
                   </section>
@@ -213,7 +213,7 @@ function LevelRow({ code, state }: { code: string; state: "COMPLETED" | "IN_PROG
         <div className="min-w-0 flex-1">
           <p className="font-semibold">{titles[code]}</p>
           <p className="text-sm text-muted-foreground">
-            {state === "COMPLETED" ? "Completed — certificate earned" : state === "LOCKED" ? "Complete the previous level to unlock" : "In progress"}
+            {state === "COMPLETED" ? "Abgeschlossen – Zertifikat erhalten" : state === "LOCKED" ? "Vorheriges Niveau abschließen, um freizuschalten" : "Laufend"}
           </p>
         </div>
         {state === "COMPLETED" ? (

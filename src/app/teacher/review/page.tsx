@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ClipboardCheck } from "lucide-react";
 
-export const metadata = { title: "Homework Review" };
+export const metadata = { title: "Hausaufgaben korrigieren" };
 
 export default async function ReviewQueuePage() {
   const session = await requireRole("TEACHER");
@@ -27,15 +27,15 @@ export default async function ReviewQueuePage() {
   return (
     <div className="container max-w-4xl space-y-6 animate-fade-in">
       <header>
-        <h1 className="text-2xl font-semibold tracking-tight">Homework Review</h1>
-        <p className="mt-1 text-sm text-muted-foreground">Submissions waiting for your grading.</p>
+        <h1 className="text-2xl font-semibold tracking-tight">Hausaufgaben korrigieren</h1>
+        <p className="mt-1 text-sm text-muted-foreground">Eingereichte Hausaufgaben warten auf deine Korrektur.</p>
       </header>
 
       {submissions.length === 0 ? (
         <Card><CardContent className="flex flex-col items-center p-10 text-center">
           <ClipboardCheck className="h-8 w-8 text-muted-foreground/50" aria-hidden />
-          <p className="mt-3 font-medium">Queue is empty</p>
-          <p className="mt-1 text-sm text-muted-foreground">New submissions appear here automatically.</p>
+          <p className="mt-3 font-medium">Warteschlange leer</p>
+          <p className="mt-1 text-sm text-muted-foreground">Neue Abgaben erscheinen hier automatisch.</p>
         </CardContent></Card>
       ) : (
         <ul className="space-y-2.5">
@@ -47,7 +47,7 @@ export default async function ReviewQueuePage() {
                   <p className="truncate text-xs text-muted-foreground">{sub.homework.lesson.titleDe} — {sub.homework.title}</p>
                 </div>
                 <Badge variant={sub.status === "SUBMITTED" ? "warning" : "accent"}>
-                  {sub.status === "SUBMITTED" ? "Awaiting grading" : "Returned"}
+                  {sub.status === "SUBMITTED" ? "Wartet auf Korrektur" : "Zurückgegeben"}
                 </Badge>
               </Link>
             </li>

@@ -7,7 +7,7 @@ import { isDemoMode } from "@/lib/demo-mode";
 import { SignInForm, DemoAccountSelector } from "@/components/auth/signin-form";
 import { LanguageSwitcher } from "@/components/language-switcher";
 
-export const metadata = { title: "Sign in" };
+export const metadata = { title: "Anmelden" };
 
 export default async function SignInPage({ searchParams }: { searchParams: Promise<{ next?: string }> }) {
   const session = await getSession();
@@ -20,7 +20,7 @@ export default async function SignInPage({ searchParams }: { searchParams: Promi
       <div className="w-full max-w-md space-y-6">
         <div className="text-center">
           <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-lg font-bold text-primary-foreground">D</span>
-          <h1 className="mt-4 text-2xl font-semibold tracking-tight">Welcome back</h1>
+          <h1 className="mt-4 text-2xl font-semibold tracking-tight">Willkommen zurück</h1>
           <p className="mt-1 text-sm text-muted-foreground">{brand.tagline}</p>
         </div>
 

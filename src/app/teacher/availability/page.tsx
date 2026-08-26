@@ -2,7 +2,7 @@ import { requireRole } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 
-export const metadata = { title: "Availability" };
+export const metadata = { title: "Verfügbarkeit" };
 
 const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
@@ -18,14 +18,14 @@ export default async function AvailabilityPage() {
   return (
     <div className="container max-w-3xl space-y-6 animate-fade-in">
       <header>
-        <h1 className="text-2xl font-semibold tracking-tight">Availability</h1>
-        <p className="mt-1 text-sm text-muted-foreground">Your weekly windows for instant and scheduled lessons.</p>
+        <h1 className="text-2xl font-semibold tracking-tight">Verfügbarkeit</h1>
+        <p className="mt-1 text-sm text-muted-foreground">Deine wöchentlichen Zeitfenster für Sofort- und Geplant-Stunden.</p>
       </header>
 
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-base">Weekly windows</CardTitle>
-          <CardDescription>Editing availability is part of the next iteration; windows were set during onboarding.</CardDescription>
+          <CardTitle className="text-base">Wöchentliche Zeitfenster</CardTitle>
+          <CardDescription>Die Bearbeitung folgt in einer nächsten Iteration; die Fenster stammen aus dem Onboarding.</CardDescription>
         </CardHeader>
         <CardContent>
           <ul className="space-y-2">
@@ -37,7 +37,7 @@ export default async function AvailabilityPage() {
                   {window ? (
                     <span className="tabular-nums text-success">{minutesToTime(window.startMinute)} – {minutesToTime(window.endMinute)}</span>
                   ) : (
-                    <span className="text-muted-foreground">Unavailable</span>
+                    <span className="text-muted-foreground">Nicht verfügbar</span>
                   )}
                 </li>
               );

@@ -28,6 +28,7 @@ const config: Config = {
         sm: "0.375rem"
       },
       fontFamily: {
+        arabic: ['"Noto Naskh Arabic"', '"Geeza Pro"', 'serif'],
         sans: [
           "InterVariable",
           "Inter",

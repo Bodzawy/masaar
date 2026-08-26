@@ -5,8 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Star } from "lucide-react";
+import { formatDate } from "@/lib/utils";
 
-export const metadata = { title: "Performance & Feedback" };
+export const metadata = { title: "Leistung & Feedback" };
 
 const WEIGHT_LABELS: Record<keyof typeof QUALITY_WEIGHTS, string> = {
   avgRating: "Average rating",
@@ -34,17 +35,17 @@ export default async function PerformancePage() {
   return (
     <div className="container max-w-4xl space-y-6 animate-fade-in">
       <header>
-        <h1 className="text-2xl font-semibold tracking-tight">Performance & Feedback</h1>
-        <p className="mt-1 text-sm text-muted-foreground">How your quality score is composed and what students say.</p>
+        <h1 className="text-2xl font-semibold tracking-tight">Leistung & Feedback</h1>
+        <p className="mt-1 text-sm text-muted-foreground">So setzt sich deine Qualitätspunktzahl zusammen – und was Lernende sagen.</p>
       </header>
 
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center justify-between text-base">
-            Quality score
+            Qualitätspunktzahl
             <span className="text-xl font-bold tabular-nums">{profile.qualityScore}/100</span>
           </CardTitle>
-          <CardDescription>Weighted calculation — documented in our quality framework.</CardDescription>
+          <CardDescription>Gewichtete Berechnung – dokumentiert im Qualitätssystem.</CardDescription>
         </CardHeader>
         <CardContent>
           <Progress value={profile.qualityScore} indicatorClassName={profile.qualityScore >= 80 ? "bg-success" : profile.qualityScore >= 70 ? "bg-warning" : "bg-destructive"} />
@@ -60,20 +61,20 @@ export default async function PerformancePage() {
       </Card>
 
       <Card>
-        <CardHeader className="pb-3"><CardTitle className="text-base">Student feedback</CardTitle></CardHeader>
+        <CardHeader className="pb-3"><CardTitle className="text-base">Feedback der Lernenden</CardTitle></CardHeader>
         <CardContent className="space-y-2.5">
           {ratings.map((r) => (
             <div key={r.id} className="rounded-lg border border-border p-4">
               <div className="flex flex-wrap items-center gap-2">
                 <Star className="h-4 w-4 fill-accent text-accent" aria-hidden />
                 <span className="font-semibold">{r.overall}.0</span>
-                <span className="text-xs text-muted-foreground">· {r.student.name} · {r.createdAt.toLocaleDateString("en-GB")}</span>
-                <Badge variant="muted" className="ms-auto">{r.explanation}/5 explanation · {r.punctuality}/5 punctual</Badge>
+                <span className="text-xs text-muted-foreground">· {r.student.name} · {formatDate(r.createdAt)}</span>
+                <Badge variant="muted" className="ms-auto">{r.explanation}/5 Erklärung · {r.punctuality}/5 pünktlich</Badge>
               </div>
               {r.comment && <p className="mt-2 text-sm leading-relaxed text-muted-foreground">“{r.comment}”</p>}
             </div>
           ))}
-          {ratings.length === 0 && <p className="text-sm text-muted-foreground">No ratings yet.</p>}
+          {ratings.length === 0 && <p className="text-sm text-muted-foreground">Noch keine Bewertungen.</p>}
         </CardContent>
       </Card>
     </div>

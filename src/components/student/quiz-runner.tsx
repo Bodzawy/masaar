@@ -11,6 +11,7 @@ import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import { autosaveAnswer, submitQuiz } from "@/app/actions/quiz";
+import { containsArabic } from "@/components/arabic-text";
 
 export interface QuizQuestionView {
   id: string;
@@ -115,11 +116,11 @@ export function QuizRunner({
           <span className="font-medium">Question {idx + 1} of {questions.length}</span>
           <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
             <Save className={`h-3 w-3 ${savedAt ? "text-success" : ""}`} aria-hidden />
-            {savedAt ? "Answers autosaved" : "Autosave on"}
+            {savedAt ? "Antworten automatisch gespeichert" : "Automatisches Speichern aktiv"}
           </span>
         </div>
         <Progress value={(answeredCount / questions.length) * 100} />
-        <p className="text-xs text-muted-foreground">Pass mark: {passScore}% · answer at least the required share correctly</p>
+        <p className="text-xs text-muted-foreground">Bestehensgrenze: {passScore}%</p>
       </div>
 
       <Card>
@@ -131,7 +132,9 @@ export function QuizRunner({
             </blockquote>
           )}
           <fieldset>
-            <legend className="text-lg font-medium leading-snug">{q.prompt}</legend>
+            <legend className="text-lg font-medium leading-snug" dir={containsArabic(q.prompt) ? "rtl" : undefined}>
+              {q.prompt}
+            </legend>
             <div className="mt-4 grid gap-2.5" role="radiogroup" aria-label={q.prompt}>
               {q.options.map((opt) => {
                 const selected = answers[q.id] === opt.id;
@@ -142,9 +145,10 @@ export function QuizRunner({
                     role="radio"
                     aria-checked={selected}
                     onClick={() => choose(opt.id)}
-                    className={`rounded-lg border px-4 py-3 text-start text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
-                      selected ? "border-primary bg-primary/5 font-medium" : "border-border hover:border-primary/40 hover:bg-muted/60"
-                    }`}
+                    dir={containsArabic(opt.text) ? "rtl" : undefined}
+                    className={`w-full rounded-lg border px-4 py-3 text-start text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+                      containsArabic(opt.text) ? "font-arabic text-lg leading-relaxed" : ""
+                    } ${selected ? "border-primary bg-primary/5 font-medium" : "border-border hover:border-primary/40 hover:bg-muted/60"}`}
                   >
                     {opt.text}
                   </button>
@@ -158,17 +162,17 @@ export function QuizRunner({
       {/* Nav */}
       <div className="flex items-center justify-between">
         <Button variant="ghost" onClick={() => setIdx((i) => Math.max(0, i - 1))} disabled={idx === 0}>
-          <ChevronLeft className="rtl:rotate-180" aria-hidden /> Previous
+          <ChevronLeft className="rtl:rotate-180" aria-hidden /> Zurück
         </Button>
-        <span className="text-xs text-muted-foreground">{answeredCount}/{questions.length} answered</span>
+        <span className="text-xs text-muted-foreground">{answeredCount}/{questions.length} beantwortet</span>
         {idx < questions.length - 1 ? (
           <Button onClick={() => setIdx((i) => i + 1)}>
-            Next <ChevronRight className="rtl:rotate-180" aria-hidden />
+            Weiter <ChevronRight className="rtl:rotate-180" aria-hidden />
           </Button>
         ) : (
           <Button variant="accent" disabled={!allAnswered || submitting} onClick={() => setConfirming(true)}>
             {submitting ? <Loader2 className="animate-spin" aria-hidden /> : <CheckCircle2 aria-hidden />}
-            Submit quiz
+            Quiz absenden
           </Button>
         )}
       </div>
@@ -181,7 +185,7 @@ export function QuizRunner({
             type="button"
             role="tab"
             aria-selected={i === idx}
-            aria-label={`Question ${i + 1}`}
+            aria-label={`Frage ${i + 1}`}
             onClick={() => setIdx(i)}
             className={`h-7 w-7 rounded-md text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
               i === idx
@@ -199,19 +203,19 @@ export function QuizRunner({
       <Dialog open={confirming} onOpenChange={setConfirming}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Submit this quiz?</DialogTitle>
-            <DialogDescription>You cannot change answers afterwards.</DialogDescription>
+            <DialogTitle>Quiz absenden?</DialogTitle>
+            <DialogDescription>Danach können Antworten nicht mehr geändert werden.</DialogDescription>
           </DialogHeader>
           {!allAnswered && (
             <p className="flex items-center gap-2 rounded-md bg-warning/10 px-3 py-2 text-sm text-warning">
               <AlertTriangle className="h-4 w-4 shrink-0" aria-hidden />
-              {questions.length - answeredCount} question(s) unanswered.
+              {questions.length - answeredCount} Frage(n) unbeantwortet.
             </p>
           )}
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setConfirming(false)}>Keep editing</Button>
+            <Button variant="ghost" onClick={() => setConfirming(false)}>Weiter bearbeiten</Button>
             <Button variant="accent" disabled={submitting} onClick={doSubmit}>
-              {submitting && <Loader2 className="animate-spin" aria-hidden />} Submit
+              {submitting && <Loader2 className="animate-spin" aria-hidden />} Absenden
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -233,27 +237,27 @@ function QuizResult({ result, passScore, onRetry }: { result: QuizResultView; pa
               : <AlertTriangle className="h-8 w-8 text-destructive" aria-hidden />}
           </span>
           <p className="mt-4 text-sm uppercase tracking-wider font-semibold text-muted-foreground">
-            You scored {result.score}% ({result.correctCount}/{result.total} correct)
+            Dein Ergebnis: {result.score}% ({result.correctCount}/{result.total} richtig)
           </p>
           <h1 className={`mt-1 text-2xl font-bold ${result.passed ? "text-success" : "text-destructive"}`}>
-            {result.passed ? "Passed" : "Not passed yet"}
+            {result.passed ? "Bestanden" : "Noch nicht bestanden"}
           </h1>
-          <p className="mt-2 text-sm text-muted-foreground">Pass mark is {passScore}%.</p>
+          <p className="mt-2 text-sm text-muted-foreground">Bestehensgrenze: {passScore}%.</p>
           <div className="mt-6 flex flex-wrap justify-center gap-3">
             {result.passed ? (
               <>
                 {result.nextHref && (
                   <Button asChild>
-                    <a href={result.nextHref}>Continue to next lesson</a>
+                    <a href={result.nextHref}>Weiter zur nächsten Lektion</a>
                   </Button>
                 )}
-                <Button variant="outline" asChild><a href="/student">Back to overview</a></Button>
+                <Button variant="outline" asChild><a href="/student">Zurück zur Übersicht</a></Button>
               </>
             ) : (
               <>
-                <Button onClick={onRetry}>Retry quiz</Button>
+                <Button onClick={onRetry}>Quiz wiederholen</Button>
                 {result.nextHref && (
-                  <Button variant="outline" asChild><a href={result.nextHref}>Continue anyway</a></Button>
+                  <Button variant="outline" asChild><a href={result.nextHref}>Trotzdem weiterlernen</a></Button>
                 )}
               </>
             )}
@@ -265,14 +269,14 @@ function QuizResult({ result, passScore, onRetry }: { result: QuizResultView; pa
         <Card>
           <CardContent className="p-5">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <h2 className="font-semibold">Review</h2>
+              <h2 className="font-semibold">Auswertung</h2>
               <Button size="sm" variant="ghost" onClick={() => setShowReview((s) => !s)}>
-                {showReview ? "Hide answers" : `Show all ${result.review.length} explanations`}
+                {showReview ? "Antworten ausblenden" : `Alle ${result.review.length} Erklärungen anzeigen`}
               </Button>
             </div>
             {weakTopics.length > 0 && (
               <div className="mt-3 flex flex-wrap gap-2">
-                <span className="text-xs text-muted-foreground">Topics to review:</span>
+                <span className="text-xs text-muted-foreground">Themen zum Wiederholen:</span>
                 {weakTopics.map((t) => <Badge key={t} variant="warning">{t}</Badge>)}
               </div>
             )}
@@ -285,8 +289,8 @@ function QuizResult({ result, passScore, onRetry }: { result: QuizResultView; pa
                       <div className="min-w-0 flex-1 space-y-1.5">
                         <p className="text-sm font-medium">{r.prompt}</p>
                         <p className="text-xs text-muted-foreground">
-                          Your answer: <span className={r.wasCorrect ? "text-success font-medium" : "text-destructive font-medium"}>{r.chosenText ?? "—"}</span>
-                          {!r.wasCorrect && <> · Correct: <span className="font-medium text-success">{r.correctText}</span></>}
+                          Deine Antwort: <span className={r.wasCorrect ? "text-success font-medium" : "text-destructive font-medium"}>{r.chosenText ?? "—"}</span>
+                          {!r.wasCorrect && <>  · Richtig: <span className="font-medium text-success">{r.correctText}</span></>}
                         </p>
                         <p className="rounded-md bg-card px-3 py-2 text-xs leading-relaxed text-muted-foreground">{r.explanation}</p>
                       </div>

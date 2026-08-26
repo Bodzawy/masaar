@@ -113,14 +113,14 @@ export function Classroom({
       <header className="flex flex-wrap items-center gap-3 border-b border-white/10 px-4 py-3">
         <div className="min-w-0">
           <p className="truncate text-sm font-semibold">{lessonTitle}</p>
-          <p className="text-xs text-white/60">{role === "TEACHER" ? "Teaching" : "Learning"} · DeutschPath Live</p>
+          <p className="text-xs text-white/60">{role === "TEACHER" ? "Unterrichtet" : "Lernt gerade"} · Masaar Live</p>
         </div>
         <div className="ms-auto flex flex-wrap items-center gap-2.5 text-xs">
           <span className="flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5 font-mono tabular-nums" aria-label={`Elapsed time ${mmss}`}>
             <span className="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden /> {mmss}
           </span>
           <Badge variant="outline" className="border-white/20 bg-transparent text-white/70 gap-1.5">
-            <SignalHigh className="h-3 w-3" aria-hidden /> Good connection
+            <SignalHigh className="h-3 w-3" aria-hidden /> Gute Verbindung
           </Badge>
           <button
             type="button"
@@ -133,14 +133,14 @@ export function Classroom({
             )}
           >
             <CircleDot className={cn("h-3 w-3", consent && "animate-pulse")} aria-hidden />
-            Recording consent: {consent ? "granted — nothing stored in demo" : "off"}
+            Aufzeichnungseinwilligung: {consent ? "erteilt – im Demo-Modus wird nichts gespeichert" : "aus"}
           </button>
         </div>
       </header>
 
       {demoMode && (
         <p className="bg-accent px-4 py-1.5 text-center text-xs font-medium text-accent-foreground">
-          Local demo mode — video panels are simulated; no real media infrastructure ({providerName}) is connected.
+          Lokaler Demo-Modus – Videofelder sind simuliert; keine echte Videotechnik ({providerName}) verbunden.
         </p>
       )}
 
@@ -276,11 +276,11 @@ export function Classroom({
                 <Input
                   value={chatDraft}
                   onChange={(e) => setChatDraft(e.target.value)}
-                  placeholder="Message…"
+                  placeholder="Nachricht…"
                   aria-label="Chat message"
                   className="border-white/15 bg-white/10 text-white placeholder:text-white/40 focus-visible:ring-white/60"
                 />
-                <Button type="submit" size="sm" variant="accent">Send</Button>
+                <Button type="submit" size="sm" variant="accent">Senden</Button>
               </form>
             </div>
           )}
@@ -292,7 +292,7 @@ export function Classroom({
               onClick={() => setChatOpen((v) => !v)}
               className="w-full rounded-md px-3 py-1.5 text-xs text-white/60 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
             >
-              {chatOpen ? "Hide chat" : "Show chat"}
+              {chatOpen ? "Chat ausblenden" : "Chat einblenden"}
             </button>
           </div>
         </aside>
@@ -302,15 +302,15 @@ export function Classroom({
       <footer className="flex flex-wrap items-center justify-center gap-2 border-t border-white/10 px-4 py-3">
         <ControlBtn active={micOn} onClick={() => setMicOn((v) => !v)} label={micOn ? "Mute microphone" : "Unmute microphone"}>
           {micOn ? <Mic aria-hidden /> : <MicOff aria-hidden />}
-          <span className="hidden sm:inline">{micOn ? "Mic" : "Mic off"}</span>
+          <span className="hidden sm:inline">Mikrofon</span>
         </ControlBtn>
         <ControlBtn active={camOn} onClick={() => setCamOn((v) => !v)} label={camOn ? "Turn camera off" : "Turn camera on"}>
           {camOn ? <Camera aria-hidden /> : <CameraOff aria-hidden />}
-          <span className="hidden sm:inline">Camera</span>
+          <span className="hidden sm:inline">Kamera</span>
         </ControlBtn>
         <ControlBtn active={screenShare} onClick={() => setScreenShare((v) => !v)} label="Toggle screen share">
           <MonitorUp aria-hidden />
-          <span className="hidden sm:inline">Share</span>
+          <span className="hidden sm:inline">Teilen</span>
         </ControlBtn>
         <ControlBtn active={chatOpen} onClick={() => setChatOpen((v) => !v)} label="Toggle chat">
           <MessageSquare aria-hidden />
@@ -319,11 +319,11 @@ export function Classroom({
 
         {role === "STUDENT" ? (
           <Button variant="destructive" className="ms-2" disabled={ending} onClick={handleEnd}>
-            <PhoneOff aria-hidden /> {ending ? "Ending…" : "Leave & rate lesson"}
+            <PhoneOff aria-hidden /> {ending ? "Beenden…" : "Verlassen & bewerten"}
           </Button>
         ) : (
           <Button variant="success" className="ms-2" disabled={ending} onClick={handleEnd}>
-            <CheckSquare aria-hidden /> {ending ? "Completing…" : "Mark lesson complete"}
+            <CheckSquare aria-hidden /> {ending ? "Wird abgeschlossen…" : "Unterricht abschließen"}
           </Button>
         )}
       </footer>
