@@ -31,6 +31,8 @@ export async function middleware(req: NextRequest) {
   return NextResponse.next();
 }
 
+// Node.js-Runtime: Middleware nutzt nur jose + Cookies und benötigt keine Edge-APIs.
 export const config = {
+  runtime: "nodejs",
   matcher: ["/student/:path*", "/teacher/:path*", "/admin/:path*", "/signin", "/signup"],
 };
