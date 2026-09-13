@@ -2,7 +2,12 @@
 
 import { useEffect, useState } from "react";
 
-const letters = [
+type LetterItem = {
+  letter: string;
+  name: string;
+};
+
+const letters: LetterItem[] = [
   { letter: "ا", name: "ألف" },
   { letter: "ب", name: "باء" },
   { letter: "ت", name: "تاء" },
@@ -15,17 +20,23 @@ const letters = [
   { letter: "س", name: "سين" },
 ];
 
-// مؤقتًا، بعدين نجيبه تلقائيًا من حساب الطالب
-const firstName = "Hamza";
+const firstName = "Lukas";
 
-function getRandomLetter(currentName?: string) {
+function getRandomLetter(currentName?: string): LetterItem {
   const available = letters.filter(
     (item) => item.name !== currentName
   );
 
-  return available[
-    Math.floor(Math.random() * available.length)
-  ];
+  const randomIndex = Math.floor(
+    Math.random() * available.length
+  );
+
+  return (
+    available[randomIndex] ?? {
+      letter: "ا",
+      name: "ألف",
+    }
+  );
 }
 
 function speakGerman(text: string) {
@@ -36,38 +47,46 @@ function speakGerman(text: string) {
   const utterance = new SpeechSynthesisUtterance(text);
 
   utterance.lang = "de-DE";
-  utterance.rate = 0.9;
+  utterance.rate = 0.95;
   utterance.pitch = 1;
+  utterance.volume = 1;
 
-  const voices = window.speechSynthesis.getVoices();
+  const voices =
+    window.speechSynthesis.getVoices();
 
-  const germanVoice =
-    voices.find(
-      (voice) =>
-        voice.lang === "de-DE"
+  const germanVoices = voices.filter((voice) =>
+    voice.lang.toLowerCase().startsWith("de")
+  );
+
+  const preferredVoice =
+    germanVoices.find((voice) =>
+      /premium|enhanced/i.test(voice.name)
     ) ||
-    voices.find(
-      (voice) =>
-        voice.lang.startsWith("de")
-    );
+    germanVoices.find((voice) =>
+      /anna/i.test(voice.name)
+    ) ||
+    germanVoices[0];
 
-  if (germanVoice) {
-    utterance.voice = germanVoice;
+  if (preferredVoice) {
+    utterance.voice = preferredVoice;
   }
 
   window.speechSynthesis.speak(utterance);
 }
 
 export default function PronunciationTest() {
-  const [current, setCurrent] = useState(() =>
-    getRandomLetter()
-  );
+  const [current, setCurrent] =
+    useState<LetterItem>(() => getRandomLetter());
 
-  const [status, setStatus] = useState("");
-  const [heard, setHeard] = useState("");
-  const [recording, setRecording] = useState(false);
+  const [status, setStatus] =
+    useState("");
 
-  // لما يظهر حرف جديد، المدرس يكلم الطفل بالألماني
+  const [heard, setHeard] =
+    useState("");
+
+  const [recording, setRecording] =
+    useState(false);
+
   useEffect(() => {
     const timer = setTimeout(() => {
       speakGerman(
@@ -113,7 +132,8 @@ export default function PronunciationTest() {
           audio: true,
         });
 
-      const recorder = new MediaRecorder(stream);
+      const recorder =
+        new MediaRecorder(stream);
 
       const chunks: Blob[] = [];
 
@@ -126,7 +146,9 @@ export default function PronunciationTest() {
       recorder.start();
 
       setTimeout(() => {
-        if (recorder.state === "recording") {
+        if (
+          recorder.state === "recording"
+        ) {
           recorder.stop();
         }
       }, 2500);
@@ -134,19 +156,25 @@ export default function PronunciationTest() {
       recorder.onstop = async () => {
         stream
           .getTracks()
-          .forEach((track) => track.stop());
+          .forEach((track) =>
+            track.stop()
+          );
 
         setStatus(
           "⏳ Ich prüfe deine Aussprache..."
         );
 
-        const blob = new Blob(chunks, {
-          type:
-            recorder.mimeType ||
-            "audio/webm",
-        });
+        const blob = new Blob(
+          chunks,
+          {
+            type:
+              recorder.mimeType ||
+              "audio/webm",
+          }
+        );
 
-        const formData = new FormData();
+        const formData =
+          new FormData();
 
         formData.append(
           "audio",
@@ -160,13 +188,14 @@ export default function PronunciationTest() {
         );
 
         try {
-          const response = await fetch(
-            "/api/pronunciation",
-            {
-              method: "POST",
-              body: formData,
-            }
-          );
+          const response =
+            await fetch(
+              "/api/pronunciation",
+              {
+                method: "POST",
+                body: formData,
+              }
+            );
 
           const result =
             await response.json();
@@ -217,7 +246,6 @@ export default function PronunciationTest() {
 
         setRecording(false);
       };
-
     } catch (error) {
       console.error(error);
 
@@ -231,7 +259,6 @@ export default function PronunciationTest() {
 
   return (
     <main className="min-h-screen flex items-center justify-center bg-gray-100 p-6">
-
       <div className="w-full max-w-lg rounded-3xl bg-white p-10 text-center shadow-lg">
 
         <p className="mb-3 text-gray-500">
@@ -288,7 +315,6 @@ export default function PronunciationTest() {
         )}
 
       </div>
-
     </main>
   );
 }
