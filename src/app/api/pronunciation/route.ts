@@ -1,68 +1,131 @@
-import { ARABIC_LETTERS } from "@/lib/pronunciation/letters";
+import * as SpeechSDK from "microsoft-cognitiveservices-speech-sdk";
+
+import {
+  ARABIC_LETTERS,
+} from "@/lib/pronunciation/letters";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 const allowedTargets = new Set(
-  ARABIC_LETTERS.map((item) => item.referenceText)
+  ARABIC_LETTERS.map(
+    (item) => item.referenceText
+  )
 );
 
-type AzureAssessment = {
-  AccuracyScore?: number;
-  FluencyScore?: number;
-  CompletenessScore?: number;
-  PronScore?: number;
+type RawPhoneme = {
+  Phoneme?: string;
+
+  PronunciationAssessment?: {
+    AccuracyScore?: number;
+  };
 };
 
-type AzureResult = {
-  RecognitionStatus?: string;
-  DisplayText?: string;
+type RawWord = {
+  Word?: string;
 
+  PronunciationAssessment?: {
+    AccuracyScore?: number;
+    ErrorType?: string;
+  };
+
+  Phonemes?: RawPhoneme[];
+};
+
+type RawAzureResult = {
   NBest?: Array<{
-    Display?: string;
-    Lexical?: string;
-
-    PronunciationAssessment?: AzureAssessment;
-
-    Words?: Array<{
-      Word?: string;
-
-      PronunciationAssessment?: {
-        AccuracyScore?: number;
-        ErrorType?: string;
-      };
-
-      Phonemes?: Array<{
-        Phoneme?: string;
-
-        PronunciationAssessment?: {
-          AccuracyScore?: number;
-        };
-      }>;
-    }>;
+    Words?: RawWord[];
   }>;
 };
 
-export async function POST(request: Request) {
+function recognizeOnce(
+  recognizer: SpeechSDK.SpeechRecognizer
+): Promise<SpeechSDK.SpeechRecognitionResult> {
+  return new Promise(
+    (resolve, reject) => {
+      recognizer.recognizeOnceAsync(
+        (result) => {
+          resolve(result);
+        },
+
+        (error) => {
+          reject(
+            new Error(
+              typeof error === "string"
+                ? error
+                : "Azure Speech recognition failed."
+            )
+          );
+        }
+      );
+    }
+  );
+}
+
+function validScore(
+  value: number
+): number | null {
+  if (
+    !Number.isFinite(value) ||
+    value < 0
+  ) {
+    return null;
+  }
+
+  return Math.round(value);
+}
+
+export async function POST(
+  request: Request
+) {
+  let audioConfig:
+    | SpeechSDK.AudioConfig
+    | null = null;
+
+  let recognizer:
+    | SpeechSDK.SpeechRecognizer
+    | null = null;
+
   try {
-    const key = process.env.AZURE_SPEECH_KEY;
-    const region = process.env.AZURE_SPEECH_REGION;
+    const key =
+      process.env.AZURE_SPEECH_KEY;
+
+    const region =
+      process.env.AZURE_SPEECH_REGION;
 
     if (!key || !region) {
       return Response.json(
-        { error: "Azure Speech is not configured." },
-        { status: 500 }
+        {
+          error:
+            "Azure Speech is not configured.",
+        },
+        {
+          status: 500,
+        }
       );
     }
 
-    const formData = await request.formData();
+    const formData =
+      await request.formData();
 
-    const audio = formData.get("audio");
-    const target = formData.get("target");
+    const audio =
+      formData.get("audio");
 
-    if (!audio || typeof audio === "string") {
+    const target =
+      formData.get("target");
+
+    if (
+      !audio ||
+      typeof audio === "string"
+    ) {
       return Response.json(
-        { error: "Audio is required." },
-        { status: 400 }
+        {
+          error:
+            "Audio is required.",
+        },
+        {
+          status: 400,
+        }
       );
     }
 
@@ -71,155 +134,388 @@ export async function POST(request: Request) {
       !allowedTargets.has(target)
     ) {
       return Response.json(
-        { error: "Invalid target." },
-        { status: 400 }
+        {
+          error:
+            "Invalid pronunciation target.",
+        },
+        {
+          status: 400,
+        }
       );
     }
 
-    const config = {
-      ReferenceText: target,
-      GradingSystem: "HundredMark",
-      Granularity: "Phoneme",
-      Dimension: "Comprehensive",
-      EnableMiscue: true,
-    };
+    /*
+      التسجيل القادم من المتصفح
+      تم تحويله بالفعل إلى:
 
-    const pronunciationHeader = Buffer.from(
-      JSON.stringify(config),
-      "utf8"
-    ).toString("base64");
-
-    const endpoint =
-      `https://${region}.stt.speech.microsoft.com` +
-      `/speech/recognition/conversation/cognitiveservices/v1` +
-      `?language=ar-SA&format=detailed`;
-
-    const response = await fetch(endpoint, {
-      method: "POST",
-
-      headers: {
-        "Ocp-Apim-Subscription-Key": key,
-
-        "Pronunciation-Assessment":
-          pronunciationHeader,
-
-        "Content-Type":
-          "audio/wav; codecs=audio/pcm; samplerate=16000",
-
-        Accept: "application/json",
-      },
-
-      body: Buffer.from(
+      WAV
+      PCM 16-bit
+      Mono
+      16 kHz
+    */
+    const audioBuffer =
+      Buffer.from(
         await audio.arrayBuffer()
-      ),
-    });
+      );
 
-    const raw = await response.text();
+    /*
+      إعداد Azure Speech.
+    */
+    const speechConfig =
+      SpeechSDK.SpeechConfig.fromSubscription(
+        key,
+        region
+      );
 
-    let result: AzureResult;
+    speechConfig.speechRecognitionLanguage =
+      "ar-SA";
 
-    try {
-      result = JSON.parse(raw);
-    } catch {
-      console.error("AZURE INVALID RESPONSE:", raw);
+    /*
+      Microsoft Speech SDK يدعم
+      WAV Buffer مباشرة في Node.js.
+    */
+    audioConfig =
+      SpeechSDK.AudioConfig.fromWavFileInput(
+        audioBuffer,
+        "voice.wav"
+      );
+
+    recognizer =
+      new SpeechSDK.SpeechRecognizer(
+        speechConfig,
+        audioConfig
+      );
+
+    /*
+      هنا نفعّل Pronunciation Assessment
+      رسميًا على الـrecognizer نفسه.
+    */
+    const pronunciationConfig =
+      new SpeechSDK.PronunciationAssessmentConfig(
+        target,
+
+        SpeechSDK
+          .PronunciationAssessmentGradingSystem
+          .HundredMark,
+
+        SpeechSDK
+          .PronunciationAssessmentGranularity
+          .Phoneme,
+
+        true
+      );
+
+    pronunciationConfig.applyTo(
+      recognizer
+    );
+
+    /*
+      اطلب من Azure تحليل التسجيل مرة واحدة.
+    */
+    const result =
+      await recognizeOnce(
+        recognizer
+      );
+
+    if (
+      result.reason ===
+      SpeechSDK.ResultReason.NoMatch
+    ) {
+      return Response.json(
+        {
+          error:
+            "لم أستطع سماع النطق بوضوح. حاول مرة أخرى.",
+        },
+        {
+          status: 422,
+        }
+      );
+    }
+
+    if (
+      result.reason ===
+      SpeechSDK.ResultReason.Canceled
+    ) {
+      const cancellation =
+        SpeechSDK.CancellationDetails.fromResult(
+          result
+        );
+
+      console.error(
+        "AZURE SPEECH CANCELED:",
+        {
+          reason:
+            cancellation.reason,
+
+          errorCode:
+            cancellation.ErrorCode,
+
+          errorDetails:
+            cancellation.errorDetails,
+        }
+      );
 
       return Response.json(
-        { error: "Invalid Azure response." },
-        { status: 502 }
+        {
+          error:
+            "Azure Speech could not evaluate the recording.",
+        },
+        {
+          status: 502,
+        }
       );
     }
 
-    if (!response.ok) {
+    if (
+      result.reason !==
+      SpeechSDK.ResultReason
+        .RecognizedSpeech
+    ) {
       console.error(
-        "AZURE ASSESSMENT ERROR:",
-        response.status,
+        "Unexpected Azure result:",
+        result.reason
+      );
+
+      return Response.json(
+        {
+          error:
+            "Speech was not recognized correctly.",
+        },
+        {
+          status: 422,
+        }
+      );
+    }
+
+    /*
+      دي أهم نقطة:
+
+      بدل ما نستخرج scores يدويًا
+      من REST JSON، بنخلي الـSDK
+      نفسه يطلع PronunciationAssessmentResult.
+    */
+    const assessment =
+      SpeechSDK.PronunciationAssessmentResult.fromResult(
         result
       );
 
-      return Response.json(
-        { error: "Pronunciation assessment failed." },
-        { status: response.status }
+    const accuracy =
+      validScore(
+        assessment.accuracyScore
       );
-    }
 
-    if (result.RecognitionStatus !== "Success") {
+    const pronunciation =
+      validScore(
+        assessment.pronunciationScore
+      );
+
+    const fluency =
+      validScore(
+        assessment.fluencyScore
+      );
+
+    const completeness =
+      validScore(
+        assessment.completenessScore
+      );
+
+    /*
+      ممنوع نحول missing score إلى 0.
+
+      لو Azure عرف الكلام
+      لكنه لم يرجع Pronunciation Score،
+      نرجع Error واضح بدل
+      ما نظلم الطالب بـ0/100.
+    */
+    if (
+      accuracy === null ||
+      pronunciation === null
+    ) {
+      console.error(
+        "Pronunciation scores missing:",
+        {
+          recognized:
+            result.text,
+
+          accuracy:
+            assessment.accuracyScore,
+
+          pronunciation:
+            assessment.pronunciationScore,
+
+          fluency:
+            assessment.fluencyScore,
+
+          completeness:
+            assessment.completenessScore,
+        }
+      );
+
       return Response.json(
         {
-          error: "Speech was not recognized clearly.",
-          recognitionStatus: result.RecognitionStatus,
+          error:
+            "Azure recognized the speech, but did not return a pronunciation score.",
         },
-        { status: 422 }
+        {
+          status: 502,
+        }
       );
     }
 
-    const best = result.NBest?.[0];
+    /*
+      الـFluency والـCompleteness أقل أهمية
+      جدًا في كلمة قصيرة مثل "ألف".
 
-    const assessment =
-      best?.PronunciationAssessment;
+      لو لم يرجعا، نرسل null بدل 0.
+    */
+    const safeFluency =
+      fluency ?? accuracy;
 
-    const accuracy = Math.round(
-      assessment?.AccuracyScore ?? 0
+    const safeCompleteness =
+      completeness ?? 100;
+
+    /*
+      نحاول أيضًا قراءة التفاصيل
+      على مستوى الكلمة والفونيم.
+
+      دي هنحتاجها بعدين علشان
+      نقول للطالب أي صوت محتاج تحسين.
+    */
+    let words: Array<{
+      word: string;
+      accuracy: number | null;
+      errorType: string;
+      phonemes: Array<{
+        phoneme: string | null;
+        accuracy: number | null;
+      }>;
+    }> = [];
+
+    try {
+      const rawJson =
+        result.properties.getProperty(
+          SpeechSDK.PropertyId
+            .SpeechServiceResponse_JsonResult
+        );
+
+      if (rawJson) {
+        const rawResult =
+          JSON.parse(
+            rawJson
+          ) as RawAzureResult;
+
+        const rawWords =
+          rawResult.NBest?.[0]
+            ?.Words ?? [];
+
+        words =
+          rawWords.map(
+            (word) => ({
+              word:
+                word.Word ?? "",
+
+              accuracy:
+                typeof word
+                  .PronunciationAssessment
+                  ?.AccuracyScore ===
+                "number"
+                  ? Math.round(
+                      word
+                        .PronunciationAssessment
+                        .AccuracyScore
+                    )
+                  : null,
+
+              errorType:
+                word
+                  .PronunciationAssessment
+                  ?.ErrorType ??
+                "None",
+
+              phonemes:
+                word.Phonemes?.map(
+                  (phoneme) => ({
+                    phoneme:
+                      phoneme.Phoneme ??
+                      null,
+
+                    accuracy:
+                      typeof phoneme
+                        .PronunciationAssessment
+                        ?.AccuracyScore ===
+                      "number"
+                        ? Math.round(
+                            phoneme
+                              .PronunciationAssessment
+                              .AccuracyScore
+                          )
+                        : null,
+                  })
+                ) ?? [],
+            })
+          );
+      }
+    } catch (error) {
+      /*
+        لو تفاصيل الفونيم فشلت،
+        ما نكسرش التقييم الأساسي.
+      */
+      console.warn(
+        "Could not parse detailed pronunciation result:",
+        error
+      );
+    }
+
+    /*
+      Threshold مؤقت.
+
+      بعد ما نجرب Azure على عدة أشخاص
+      هنضبطه علميًا لكل Level.
+    */
+    const passed =
+      accuracy >= 75;
+
+    console.log(
+      "PRONUNCIATION RESULT:",
+      {
+        target,
+        recognized:
+          result.text,
+        accuracy,
+        pronunciation,
+        fluency:
+          safeFluency,
+        completeness:
+          safeCompleteness,
+        passed,
+      }
     );
-
-    const pronunciation = Math.round(
-      assessment?.PronScore ?? accuracy
-    );
-
-    const fluency = Math.round(
-      assessment?.FluencyScore ?? 0
-    );
-
-    const completeness = Math.round(
-      assessment?.CompletenessScore ?? 0
-    );
-
-    const passed = accuracy >= 75;
 
     return Response.json({
       target,
 
       recognized:
-        result.DisplayText ||
-        best?.Display ||
-        best?.Lexical ||
-        "",
+        result.text ?? "",
 
       passed,
 
       scores: {
         accuracy,
+
         pronunciation,
-        fluency,
-        completeness,
+
+        fluency:
+          safeFluency,
+
+        completeness:
+          safeCompleteness,
       },
 
-      words:
-        best?.Words?.map((word) => ({
-          word: word.Word ?? "",
-
-          accuracy: Math.round(
-            word.PronunciationAssessment
-              ?.AccuracyScore ?? 0
-          ),
-
-          errorType:
-            word.PronunciationAssessment
-              ?.ErrorType ?? "None",
-
-          phonemes:
-            word.Phonemes?.map((phoneme) => ({
-              phoneme: phoneme.Phoneme ?? null,
-
-              accuracy: Math.round(
-                phoneme.PronunciationAssessment
-                  ?.AccuracyScore ?? 0
-              ),
-            })) ?? [],
-        })) ?? [],
+      words,
     });
   } catch (error) {
     console.error(
-      "PRONUNCIATION ERROR:",
+      "PRONUNCIATION SDK ERROR:",
       error
     );
 
@@ -230,7 +526,22 @@ export async function POST(request: Request) {
             ? error.message
             : "Pronunciation assessment failed.",
       },
-      { status: 500 }
+      {
+        status: 500,
+      }
     );
+  } finally {
+    /*
+      مهم في Vercel:
+      نقفل موارد Azure SDK
+      بعد كل request.
+    */
+    try {
+      recognizer?.close();
+    } catch {}
+
+    try {
+      audioConfig?.close();
+    } catch {}
   }
 }
