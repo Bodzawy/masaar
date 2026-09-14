@@ -1,39 +1,56 @@
+import { ARABIC_LETTERS } from "@/lib/pronunciation/letters";
+
 export const runtime = "nodejs";
 
-const allowedTargets = [
-  "ألف",
-  "باء",
-  "تاء",
-  "ثاء",
-  "جيم",
-  "حاء",
-  "خاء",
-  "دال",
-  "راء",
-  "سين",
-];
+const allowedTargets = new Set(
+  ARABIC_LETTERS.map((item) => item.referenceText)
+);
 
-function normalizeArabic(text: string) {
-  return text
-    .replace(/[ًٌٍَُِّْـ]/g, "")
-    .replace(/[أإآ]/g, "ا")
-    .replace(/[.,!?؟،]/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
-}
+type AzureAssessment = {
+  AccuracyScore?: number;
+  FluencyScore?: number;
+  CompletenessScore?: number;
+  PronScore?: number;
+};
+
+type AzureResult = {
+  RecognitionStatus?: string;
+  DisplayText?: string;
+
+  NBest?: Array<{
+    Display?: string;
+    Lexical?: string;
+
+    PronunciationAssessment?: AzureAssessment;
+
+    Words?: Array<{
+      Word?: string;
+
+      PronunciationAssessment?: {
+        AccuracyScore?: number;
+        ErrorType?: string;
+      };
+
+      Phonemes?: Array<{
+        Phoneme?: string;
+
+        PronunciationAssessment?: {
+          AccuracyScore?: number;
+        };
+      }>;
+    }>;
+  }>;
+};
 
 export async function POST(request: Request) {
   try {
-    const apiKey = process.env.GROQ_API_KEY;
+    const key = process.env.AZURE_SPEECH_KEY;
+    const region = process.env.AZURE_SPEECH_REGION;
 
-    if (!apiKey) {
+    if (!key || !region) {
       return Response.json(
-        {
-          error: "GROQ_API_KEY is not configured",
-        },
-        {
-          status: 500,
-        }
+        { error: "Azure Speech is not configured." },
+        { status: 500 }
       );
     }
 
@@ -44,124 +61,163 @@ export async function POST(request: Request) {
 
     if (!audio || typeof audio === "string") {
       return Response.json(
-        {
-          error: "لم يتم إرسال تسجيل صوتي",
-        },
-        {
-          status: 400,
-        }
+        { error: "Audio is required." },
+        { status: 400 }
       );
     }
 
     if (
-      !target ||
       typeof target !== "string" ||
-      !allowedTargets.includes(target)
+      !allowedTargets.has(target)
     ) {
       return Response.json(
-        {
-          error: "الحرف المطلوب غير صحيح",
-        },
-        {
-          status: 400,
-        }
+        { error: "Invalid target." },
+        { status: 400 }
       );
     }
 
-    const groqFormData = new FormData();
+    const config = {
+      ReferenceText: target,
+      GradingSystem: "HundredMark",
+      Granularity: "Phoneme",
+      Dimension: "Comprehensive",
+      EnableMiscue: true,
+    };
 
-    groqFormData.append(
-      "file",
-      audio,
-      audio.name || "voice.webm"
-    );
+    const pronunciationHeader = Buffer.from(
+      JSON.stringify(config),
+      "utf8"
+    ).toString("base64");
 
-    groqFormData.append(
-      "model",
-      "whisper-large-v3"
-    );
+    const endpoint =
+      `https://${region}.stt.speech.microsoft.com` +
+      `/speech/recognition/conversation/cognitiveservices/v1` +
+      `?language=ar-SA&format=detailed`;
 
-    groqFormData.append(
-      "language",
-      "ar"
-    );
+    const response = await fetch(endpoint, {
+      method: "POST",
 
-    groqFormData.append(
-      "response_format",
-      "json"
-    );
+      headers: {
+        "Ocp-Apim-Subscription-Key": key,
 
-    groqFormData.append(
-      "temperature",
-      "0"
-    );
+        "Pronunciation-Assessment":
+          pronunciationHeader,
 
-    groqFormData.append(
-      "prompt",
-      "أسماء حروف عربية منفردة: ألف، باء، تاء، ثاء، جيم، حاء، خاء، دال، راء، سين"
-    );
+        "Content-Type":
+          "audio/wav; codecs=audio/pcm; samplerate=16000",
 
-    const groqResponse = await fetch(
-      "https://api.groq.com/openai/v1/audio/transcriptions",
-      {
-        method: "POST",
+        Accept: "application/json",
+      },
 
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-        },
+      body: Buffer.from(
+        await audio.arrayBuffer()
+      ),
+    });
 
-        body: groqFormData,
-      }
-    );
+    const raw = await response.text();
 
-    const result = await groqResponse.json();
+    let result: AzureResult;
 
-    if (!groqResponse.ok) {
+    try {
+      result = JSON.parse(raw);
+    } catch {
+      console.error("AZURE INVALID RESPONSE:", raw);
+
+      return Response.json(
+        { error: "Invalid Azure response." },
+        { status: 502 }
+      );
+    }
+
+    if (!response.ok) {
       console.error(
-        "GROQ TRANSCRIPTION ERROR:",
+        "AZURE ASSESSMENT ERROR:",
+        response.status,
         result
       );
 
       return Response.json(
-        {
-          error:
-            result?.error?.message ||
-            "حدث خطأ أثناء تحليل الصوت",
-        },
-        {
-          status: groqResponse.status,
-        }
+        { error: "Pronunciation assessment failed." },
+        { status: response.status }
       );
     }
 
-    const heard =
-      typeof result?.text === "string"
-        ? result.text.trim()
-        : "";
+    if (result.RecognitionStatus !== "Success") {
+      return Response.json(
+        {
+          error: "Speech was not recognized clearly.",
+          recognitionStatus: result.RecognitionStatus,
+        },
+        { status: 422 }
+      );
+    }
 
-    const cleanHeard =
-      normalizeArabic(heard);
+    const best = result.NBest?.[0];
 
-    const cleanTarget =
-      normalizeArabic(target);
+    const assessment =
+      best?.PronunciationAssessment;
 
-    const correct =
-      cleanHeard === cleanTarget ||
-      cleanHeard.includes(cleanTarget);
+    const accuracy = Math.round(
+      assessment?.AccuracyScore ?? 0
+    );
 
-    console.log({
-      target,
-      heard,
-      cleanHeard,
-      correct,
-    });
+    const pronunciation = Math.round(
+      assessment?.PronScore ?? accuracy
+    );
+
+    const fluency = Math.round(
+      assessment?.FluencyScore ?? 0
+    );
+
+    const completeness = Math.round(
+      assessment?.CompletenessScore ?? 0
+    );
+
+    const passed = accuracy >= 75;
 
     return Response.json({
       target,
-      heard,
-      correct,
+
+      recognized:
+        result.DisplayText ||
+        best?.Display ||
+        best?.Lexical ||
+        "",
+
+      passed,
+
+      scores: {
+        accuracy,
+        pronunciation,
+        fluency,
+        completeness,
+      },
+
+      words:
+        best?.Words?.map((word) => ({
+          word: word.Word ?? "",
+
+          accuracy: Math.round(
+            word.PronunciationAssessment
+              ?.AccuracyScore ?? 0
+          ),
+
+          errorType:
+            word.PronunciationAssessment
+              ?.ErrorType ?? "None",
+
+          phonemes:
+            word.Phonemes?.map((phoneme) => ({
+              phoneme: phoneme.Phoneme ?? null,
+
+              accuracy: Math.round(
+                phoneme.PronunciationAssessment
+                  ?.AccuracyScore ?? 0
+              ),
+            })) ?? [],
+        })) ?? [],
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error(
       "PRONUNCIATION ERROR:",
       error
@@ -170,12 +226,11 @@ export async function POST(request: Request) {
     return Response.json(
       {
         error:
-          error?.message ||
-          "حدث خطأ أثناء تحليل الصوت",
+          error instanceof Error
+            ? error.message
+            : "Pronunciation assessment failed.",
       },
-      {
-        status: 500,
-      }
+      { status: 500 }
     );
   }
 }
