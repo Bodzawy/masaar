@@ -8,7 +8,15 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const LANGUAGE = "ar-EG";
-const MIN_ACCURACY = 75;
+
+const MIN_ACCURACY = 72;
+const MIN_FIRST_SOUND_SCORE = 65;
+
+/*
+  لازم نطق الحرف المطلوب يتفوق
+  على أقرب نطق خاطئ بالفارق ده.
+*/
+const MIN_MARGIN = 10;
 
 const allowedTargets = new Set(
   ARABIC_LETTERS.map(
@@ -16,10 +24,124 @@ const allowedTargets = new Set(
   )
 );
 
-const letterNames =
-  ARABIC_LETTERS.map(
-    (item) => item.referenceText
-  );
+/*
+  هنا مش بس بنحط أسماء حروف أخرى.
+
+  بنحط كمان الأخطاء اللي اكتشفناها
+  فعليًا أثناء التجربة.
+
+  مثال:
+  ذال → زال
+  عين → أين
+*/
+const CONFUSION_REFERENCES: Record<
+  string,
+  string[]
+> = {
+  تاء: [
+    "ثاء",
+    "طاء",
+  ],
+
+  ثاء: [
+    "تاء",
+    "فاء",
+    "طاء",
+  ],
+
+  جيم: [
+    "شيم",
+  ],
+
+  حاء: [
+    "هاء",
+    "خاء",
+  ],
+
+  خاء: [
+    "حاء",
+    "غاء",
+  ],
+
+  دال: [
+    "ذال",
+    "ضال",
+  ],
+
+  ذال: [
+    "زال",
+    "زاي",
+    "دال",
+    "ظاء",
+  ],
+
+  زاي: [
+    "ذاي",
+    "ذال",
+    "زاء",
+    "ظاء",
+  ],
+
+  سين: [
+    "صين",
+    "صاد",
+    "ثين",
+  ],
+
+  صاد: [
+    "ساد",
+    "سين",
+    "ضاد",
+  ],
+
+  ضاد: [
+    "داد",
+    "دال",
+    "صاد",
+    "ظاء",
+  ],
+
+  طاء: [
+    "تاء",
+    "ظاء",
+  ],
+
+  ظاء: [
+    "زاء",
+    "زاي",
+    "ذال",
+    "طاء",
+    "ضاد",
+  ],
+
+  عين: [
+    "أين",
+    "غين",
+  ],
+
+  غين: [
+    "عين",
+    "خاء",
+  ],
+
+  فاء: [
+    "ثاء",
+    "باء",
+  ],
+
+  قاف: [
+    "كاف",
+  ],
+
+  كاف: [
+    "قاف",
+  ],
+
+  هاء: [
+    "حاء",
+    "خاء",
+  ],
+};
 
 type RawPhoneme = {
   Phoneme?: string;
@@ -46,18 +168,26 @@ type RawAzureResult = {
   }>;
 };
 
-type PronunciationResult = {
+type AssessmentResult = {
+  referenceText: string;
+
   recognized: string;
 
-  accuracy: number;
-  pronunciation: number;
+  accuracy: number | null;
+
+  pronunciation: number | null;
 
   fluency: number | null;
+
   completeness: number | null;
+
+  firstSoundScore: number | null;
 
   words: Array<{
     word: string;
+
     accuracy: number | null;
+
     errorType: string;
 
     phonemes: Array<{
@@ -66,20 +196,6 @@ type PronunciationResult = {
     }>;
   }>;
 };
-
-function normalizeArabic(
-  value: string
-) {
-  return value
-    .replace(
-      /[\u064B-\u065F\u0670]/g,
-      ""
-    )
-    .replace(/ـ/g, "")
-    .replace(/[إأآٱ]/g, "ا")
-    .replace(/[^\u0621-\u064A]/g, "")
-    .trim();
-}
 
 function validScore(
   value: number | undefined
@@ -119,146 +235,12 @@ function recognizeOnce(
   );
 }
 
-/*
-  المرحلة الأولى:
-
-  لا نقول لـAzure ما هو الحرف المطلوب.
-
-  فقط نقول له:
-  الكلام المتوقع واحد من أسماء
-  الحروف العربية الـ28.
-
-  وبالتالي نحاول معرفة:
-  هل الطالب قال تاء؟
-  أم ثاء؟
-  أم طاء؟
-  أم فاء؟
-  ...
-*/
-async function identifyLetter(
+async function assessAudio(
   audioBuffer: Buffer,
+  referenceText: string,
   key: string,
   region: string
-): Promise<string> {
-  let audioConfig:
-    | SpeechSDK.AudioConfig
-    | null = null;
-
-  let recognizer:
-    | SpeechSDK.SpeechRecognizer
-    | null = null;
-
-  try {
-    const speechConfig =
-      SpeechSDK.SpeechConfig.fromSubscription(
-        key,
-        region
-      );
-
-    speechConfig.speechRecognitionLanguage =
-      LANGUAGE;
-
-    audioConfig =
-      SpeechSDK.AudioConfig.fromWavFileInput(
-        audioBuffer,
-        "voice.wav"
-      );
-
-    recognizer =
-      new SpeechSDK.SpeechRecognizer(
-        speechConfig,
-        audioConfig
-      );
-
-    /*
-      نساعد Azure بأن نقول له إن الكلام
-      المتوقع هو أسماء الحروف فقط.
-    */
-    const phraseList =
-      SpeechSDK.PhraseListGrammar.fromRecognizer(
-        recognizer
-      );
-
-    for (
-      const letterName of letterNames
-    ) {
-      phraseList.addPhrase(
-        letterName
-      );
-    }
-
-    const result =
-      await recognizeOnce(
-        recognizer
-      );
-
-    if (
-      result.reason ===
-      SpeechSDK.ResultReason.NoMatch
-    ) {
-      return "";
-    }
-
-    if (
-      result.reason ===
-      SpeechSDK.ResultReason.Canceled
-    ) {
-      const cancellation =
-        SpeechSDK.CancellationDetails.fromResult(
-          result
-        );
-
-      console.error(
-        "AZURE IDENTIFICATION CANCELED:",
-        {
-          reason:
-            cancellation.reason,
-
-          errorCode:
-            cancellation.ErrorCode,
-
-          errorDetails:
-            cancellation.errorDetails,
-        }
-      );
-
-      throw new Error(
-        "Azure could not identify the spoken letter."
-      );
-    }
-
-    if (
-      result.reason !==
-      SpeechSDK.ResultReason
-        .RecognizedSpeech
-    ) {
-      return "";
-    }
-
-    return result.text ?? "";
-  } finally {
-    try {
-      recognizer?.close();
-    } catch {}
-
-    try {
-      audioConfig?.close();
-    } catch {}
-  }
-}
-
-/*
-  المرحلة الثانية:
-
-  بعد معرفة ماذا قال الطالب،
-  نقيّم جودة نطقه للحرف المطلوب.
-*/
-async function assessPronunciation(
-  audioBuffer: Buffer,
-  target: string,
-  key: string,
-  region: string
-): Promise<PronunciationResult> {
+): Promise<AssessmentResult> {
   let audioConfig:
     | SpeechSDK.AudioConfig
     | null = null;
@@ -291,7 +273,7 @@ async function assessPronunciation(
 
     const pronunciationConfig =
       new SpeechSDK.PronunciationAssessmentConfig(
-        target,
+        referenceText,
 
         SpeechSDK
           .PronunciationAssessmentGradingSystem
@@ -317,9 +299,20 @@ async function assessPronunciation(
       result.reason ===
       SpeechSDK.ResultReason.NoMatch
     ) {
-      throw new Error(
-        "Speech was not recognized clearly."
-      );
+      return {
+        referenceText,
+
+        recognized: "",
+
+        accuracy: null,
+        pronunciation: null,
+        fluency: null,
+        completeness: null,
+
+        firstSoundScore: null,
+
+        words: [],
+      };
     }
 
     if (
@@ -332,13 +325,12 @@ async function assessPronunciation(
         );
 
       console.error(
-        "AZURE ASSESSMENT CANCELED:",
+        "AZURE CANCELED:",
         {
+          referenceText,
+
           reason:
             cancellation.reason,
-
-          errorCode:
-            cancellation.ErrorCode,
 
           errorDetails:
             cancellation.errorDetails,
@@ -346,17 +338,7 @@ async function assessPronunciation(
       );
 
       throw new Error(
-        "Azure could not evaluate the pronunciation."
-      );
-    }
-
-    if (
-      result.reason !==
-      SpeechSDK.ResultReason
-        .RecognizedSpeech
-    ) {
-      throw new Error(
-        "Speech was not recognized correctly."
+        "Azure could not evaluate the recording."
       );
     }
 
@@ -385,16 +367,7 @@ async function assessPronunciation(
         assessment.completenessScore
       );
 
-    if (
-      accuracy === null ||
-      pronunciation === null
-    ) {
-      throw new Error(
-        "Azure did not return a pronunciation score."
-      );
-    }
-
-    let words: PronunciationResult["words"] =
+    let words: AssessmentResult["words"] =
       [];
 
     try {
@@ -405,13 +378,13 @@ async function assessPronunciation(
         );
 
       if (rawJson) {
-        const raw =
+        const parsed =
           JSON.parse(
             rawJson
           ) as RawAzureResult;
 
         const rawWords =
-          raw.NBest?.[0]
+          parsed.NBest?.[0]
             ?.Words ?? [];
 
         words =
@@ -453,20 +426,44 @@ async function assessPronunciation(
       }
     } catch (error) {
       console.warn(
-        "Could not parse phoneme details:",
+        "Could not read phoneme details:",
         error
       );
     }
 
+    /*
+      أهم حاجة عندنا في أسماء الحروف
+      هي أول صوت.
+
+      مثال:
+
+      ذال / زال
+      الاختلاف في أول صوت.
+
+      سين / صين
+      الاختلاف في أول صوت.
+    */
+    const firstSoundScore =
+      words[0]
+        ?.phonemes[0]
+        ?.accuracy ??
+      null;
+
     return {
+      referenceText,
+
       recognized:
         result.text ?? "",
 
       accuracy,
+
       pronunciation,
 
       fluency,
+
       completeness,
+
+      firstSoundScore,
 
       words,
     };
@@ -479,6 +476,36 @@ async function assessPronunciation(
       audioConfig?.close();
     } catch {}
   }
+}
+
+function discriminationScore(
+  result: AssessmentResult
+): number | null {
+  /*
+    نعطي أول صوت أهمية أكبر
+    من بقية اسم الحرف.
+
+    لو Azure لم يرجع phoneme،
+    نستخدم Accuracy العادية.
+  */
+
+  if (
+    result.firstSoundScore !==
+      null &&
+    result.accuracy !== null
+  ) {
+    return Math.round(
+      result.firstSoundScore *
+        0.75 +
+        result.accuracy *
+          0.25
+    );
+  }
+
+  return (
+    result.firstSoundScore ??
+    result.accuracy
+  );
 }
 
 export async function POST(
@@ -548,84 +575,192 @@ export async function POST(
       );
 
     /*
-      STEP 1:
-      ماذا قال الطالب فعلاً؟
+      1. قيّم الحرف الصحيح.
     */
-    const identified =
-      await identifyLetter(
-        audioBuffer,
-        key,
-        region
-      );
-
-    /*
-      STEP 2:
-      جودة النطق مقارنة بالحرف المطلوب.
-    */
-    const assessment =
-      await assessPronunciation(
+    const primary =
+      await assessAudio(
         audioBuffer,
         target,
         key,
         region
       );
 
-    const normalizedTarget =
-      normalizeArabic(
-        target
+    if (
+      primary.accuracy === null ||
+      primary.pronunciation === null
+    ) {
+      return Response.json(
+        {
+          error:
+            "لم أستطع تقييم النطق بوضوح. حاول مرة أخرى.",
+        },
+        {
+          status: 422,
+        }
+      );
+    }
+
+    /*
+      2. قيّم نفس التسجيل
+         ضد الأخطاء المحتملة.
+    */
+    const alternatives =
+      CONFUSION_REFERENCES[target] ??
+      [];
+
+    const alternativeResults =
+      await Promise.all(
+        alternatives.map(
+          (alternative) =>
+            assessAudio(
+              audioBuffer,
+              alternative,
+              key,
+              region
+            )
+        )
       );
 
-    const normalizedIdentified =
-      normalizeArabic(
-        identified
+    const targetScore =
+      discriminationScore(
+        primary
       );
 
-    const correctLetter =
-      normalizedIdentified ===
-      normalizedTarget;
+    const scoredAlternatives =
+      alternativeResults
+        .map((result) => ({
+          result,
+
+          score:
+            discriminationScore(
+              result
+            ),
+        }))
+        .filter(
+          (
+            item
+          ): item is {
+            result: AssessmentResult;
+            score: number;
+          } =>
+            typeof item.score ===
+            "number"
+        );
+
+    scoredAlternatives.sort(
+      (a, b) =>
+        b.score - a.score
+    );
+
+    const bestAlternative =
+      scoredAlternatives[0];
+
+    const margin =
+      targetScore !== null &&
+      bestAlternative
+        ? targetScore -
+          bestAlternative.score
+        : null;
 
     const accuracyPassed =
-      assessment.accuracy >=
+      primary.accuracy >=
       MIN_ACCURACY;
 
+    const firstSoundPassed =
+      primary.firstSoundScore ===
+        null ||
+      primary.firstSoundScore >=
+        MIN_FIRST_SOUND_SCORE;
+
+    /*
+      لو عندنا أخطاء مشابهة،
+      لازم الحرف الصحيح يكسب
+      بفارق واضح.
+
+      لو مش واضح:
+      لا نقول ممتاز.
+      نخليه يعيد.
+    */
+    const contrastPassed =
+      !bestAlternative ||
+      (margin !== null &&
+        margin >= MIN_MARGIN);
+
     const passed =
-      correctLetter &&
-      accuracyPassed;
+      accuracyPassed &&
+      firstSoundPassed &&
+      contrastPassed;
 
     let failureReason:
-      | "wrong_letter"
       | "low_accuracy"
-      | "not_recognized"
+      | "weak_first_sound"
+      | "wrong_letter"
+      | "ambiguous"
       | null = null;
 
-    if (!normalizedIdentified) {
-      failureReason =
-        "not_recognized";
-    } else if (!correctLetter) {
-      failureReason =
-        "wrong_letter";
-    } else if (!accuracyPassed) {
+    if (!accuracyPassed) {
       failureReason =
         "low_accuracy";
+    } else if (
+      !firstSoundPassed
+    ) {
+      failureReason =
+        "weak_first_sound";
+    } else if (
+      bestAlternative &&
+      margin !== null &&
+      margin < 0
+    ) {
+      failureReason =
+        "wrong_letter";
+    } else if (
+      !contrastPassed
+    ) {
+      failureReason =
+        "ambiguous";
     }
 
     console.log(
-      "PRONUNCIATION RESULT:",
+      "ARABIC LETTER ASSESSMENT:",
       {
         target,
 
-        identified,
+        targetAccuracy:
+          primary.accuracy,
 
-        assessmentRecognized:
-          assessment.recognized,
+        targetFirstSound:
+          primary.firstSoundScore,
 
-        correctLetter,
+        targetScore,
 
-        accuracy:
-          assessment.accuracy,
+        alternatives:
+          scoredAlternatives.map(
+            (item) => ({
+              reference:
+                item.result
+                  .referenceText,
 
-        pronunciation:
-          assessment.pronunciation,
+              accuracy:
+                item.result
+                  .accuracy,
+
+              firstSound:
+                item.result
+                  .firstSoundScore,
+
+              score:
+                item.score,
+            })
+          ),
+
+        bestAlternative:
+          bestAlternative
+            ? bestAlternative
+                .result
+                .referenceText
+            : null,
+
+        margin,
 
         passed,
 
@@ -637,12 +772,11 @@ export async function POST(
       target,
 
       /*
-        مهم:
-        نعرض ما سمعه Azure
-        في مرحلة تحديد الحرف.
+        ما نعرضش للطالب
+        Speech-to-Text هنا؛
+        لأنه ممكن يكون مضلل.
       */
-      recognized:
-        identified,
+      recognized: "",
 
       passed,
 
@@ -650,33 +784,43 @@ export async function POST(
 
       scores: {
         accuracy:
-          assessment.accuracy,
+          primary.accuracy,
 
         pronunciation:
-          assessment.pronunciation,
+          primary.pronunciation,
 
         fluency:
-          assessment.fluency ??
-          assessment.accuracy,
+          primary.fluency ??
+          primary.accuracy,
 
         completeness:
-          assessment.completeness ??
+          primary.completeness ??
           100,
       },
 
-      identification: {
-        expected:
-          target,
+      discrimination: {
+        targetScore,
 
-        heard:
-          identified,
+        firstSoundScore:
+          primary.firstSoundScore,
 
-        correct:
-          correctLetter,
+        closestAlternative:
+          bestAlternative
+            ? bestAlternative
+                .result
+                .referenceText
+            : null,
+
+        alternativeScore:
+          bestAlternative
+            ? bestAlternative.score
+            : null,
+
+        margin,
       },
 
       words:
-        assessment.words,
+        primary.words,
     });
   } catch (error) {
     console.error(
