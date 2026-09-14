@@ -1,17 +1,4 @@
-import { execFile } from "child_process";
-import { promisify } from "util";
-import {
-  writeFile,
-  unlink,
-} from "fs/promises";
-import path from "path";
-import os from "os";
-import crypto from "crypto";
-
 export const runtime = "nodejs";
-
-const execFileAsync =
-  promisify(execFile);
 
 const allowedTargets = [
   "ألف",
@@ -26,9 +13,7 @@ const allowedTargets = [
   "سين",
 ];
 
-function normalizeArabic(
-  text: string
-) {
+function normalizeArabic(text: string) {
   return text
     .replace(/[ًٌٍَُِّْـ]/g, "")
     .replace(/[أإآ]/g, "ا")
@@ -37,40 +22,30 @@ function normalizeArabic(
     .trim();
 }
 
-export async function POST(
-  request: Request
-) {
-  const id =
-    crypto.randomUUID();
-
-  const webmPath = path.join(
-    os.tmpdir(),
-    `${id}.webm`
-  );
-
-  const wavPath = path.join(
-    os.tmpdir(),
-    `${id}.wav`
-  );
-
+export async function POST(request: Request) {
   try {
-    const formData =
-      await request.formData();
+    const apiKey = process.env.GROQ_API_KEY;
 
-    const audio =
-      formData.get("audio");
-
-    const target =
-      formData.get("target");
-
-    if (
-      !audio ||
-      typeof audio === "string"
-    ) {
+    if (!apiKey) {
       return Response.json(
         {
-          error:
-            "لم يتم إرسال تسجيل صوتي",
+          error: "GROQ_API_KEY is not configured",
+        },
+        {
+          status: 500,
+        }
+      );
+    }
+
+    const formData = await request.formData();
+
+    const audio = formData.get("audio");
+    const target = formData.get("target");
+
+    if (!audio || typeof audio === "string") {
+      return Response.json(
+        {
+          error: "لم يتم إرسال تسجيل صوتي",
         },
         {
           status: 400,
@@ -85,8 +60,7 @@ export async function POST(
     ) {
       return Response.json(
         {
-          error:
-            "الحرف المطلوب غير صحيح",
+          error: "الحرف المطلوب غير صحيح",
         },
         {
           status: 400,
@@ -94,82 +68,76 @@ export async function POST(
       );
     }
 
-    const arrayBuffer =
-      await audio.arrayBuffer();
+    const groqFormData = new FormData();
 
-    await writeFile(
-      webmPath,
-      Buffer.from(arrayBuffer)
+    groqFormData.append(
+      "file",
+      audio,
+      audio.name || "voice.webm"
     );
 
-    // تحويل التسجيل إلى WAV 16kHz mono
-    await execFileAsync(
-      "ffmpeg",
-      [
-        "-y",
-        "-i",
-        webmPath,
-        "-ar",
-        "16000",
-        "-ac",
-        "1",
-        "-c:a",
-        "pcm_s16le",
-        wavPath,
-      ],
+    groqFormData.append(
+      "model",
+      "whisper-large-v3"
+    );
+
+    groqFormData.append(
+      "language",
+      "ar"
+    );
+
+    groqFormData.append(
+      "response_format",
+      "json"
+    );
+
+    groqFormData.append(
+      "temperature",
+      "0"
+    );
+
+    groqFormData.append(
+      "prompt",
+      "أسماء حروف عربية منفردة: ألف، باء، تاء، ثاء، جيم، حاء، خاء، دال، راء، سين"
+    );
+
+    const groqResponse = await fetch(
+      "https://api.groq.com/openai/v1/audio/transcriptions",
       {
-        maxBuffer:
-          10 * 1024 * 1024,
+        method: "POST",
+
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+        },
+
+        body: groqFormData,
       }
     );
 
-    // نستخدم small بدل base لتحسين العربي
-    const modelPath =
-      path.join(
-        process.cwd(),
-        "models",
-        "ggml-small.bin"
+    const result = await groqResponse.json();
+
+    if (!groqResponse.ok) {
+      console.error(
+        "GROQ TRANSCRIPTION ERROR:",
+        result
       );
 
-    const {
-      stdout,
-    } =
-      await execFileAsync(
-        "whisper-cli",
-        [
-          "-m",
-          modelPath,
-
-          "-f",
-          wavPath,
-
-          "-l",
-          "ar",
-
-          "-nt",
-
-          "-np",
-
-          "--prompt",
-          "أسماء حروف عربية منفردة: ألف، باء، تاء، ثاء، جيم، حاء، خاء، دال، راء، سين",
-
-          "-bo",
-          "5",
-
-          "-bs",
-          "5",
-
-          "-tp",
-          "0",
-        ],
+      return Response.json(
         {
-          maxBuffer:
-            10 * 1024 * 1024,
+          error:
+            result?.error?.message ||
+            "حدث خطأ أثناء تحليل الصوت",
+        },
+        {
+          status: groqResponse.status,
         }
       );
+    }
 
     const heard =
-      stdout.trim();
+      typeof result?.text === "string"
+        ? result.text.trim()
+        : "";
 
     const cleanHeard =
       normalizeArabic(heard);
@@ -179,9 +147,7 @@ export async function POST(
 
     const correct =
       cleanHeard === cleanTarget ||
-      cleanHeard.includes(
-        cleanTarget
-      );
+      cleanHeard.includes(cleanTarget);
 
     console.log({
       target,
@@ -195,10 +161,9 @@ export async function POST(
       heard,
       correct,
     });
-
   } catch (error: any) {
     console.error(
-      "LOCAL WHISPER ERROR:",
+      "PRONUNCIATION ERROR:",
       error
     );
 
@@ -212,14 +177,5 @@ export async function POST(
         status: 500,
       }
     );
-
-  } finally {
-    await unlink(
-      webmPath
-    ).catch(() => {});
-
-    await unlink(
-      wavPath
-    ).catch(() => {});
   }
 }
