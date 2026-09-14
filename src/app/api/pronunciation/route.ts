@@ -14,33 +14,27 @@ const allowedTargets = new Set(
 );
 
 /*
-  هنبدأ فقط بأهم تجربة عندنا:
+  الحروف التي نريد مقارنتها
+  ببعضها لأن الطالب قد يخلط بينها.
 
-  تاء ↔ طاء
-
-  لو أثبتت نجاحها، هنضيف:
-  س / ص
-  ح / ه / خ
-  ع / غ
-  ك / ق
-  ...إلخ
+  بدأنا الآن بـ:
+  تاء ↔ ثاء ↔ طاء
 */
 const CONFUSION_TARGETS: Record<
   string,
   string[]
 > = {
-  تاء: ["طاء"],
-  طاء: ["تاء"],
+  تاء: ["ثاء", "طاء"],
+  ثاء: ["تاء", "طاء"],
+  طاء: ["تاء", "ثاء"],
 };
 
 const MIN_ACCURACY = 75;
 
 /*
-  المطلوب لازم يكون أعلى
-  من الحرف المنافس بفارق معقول.
-
-  نبدأ بـ5 درجات ثم نضبط الرقم
-  بعد التجربة على عدة أصوات.
+  لا يكفي أن يكون المطلوب جيدًا.
+  لازم يكون أعلى من أقرب حرف مشابه
+  بفارق واضح.
 */
 const MIN_CONTRAST_MARGIN = 5;
 
@@ -434,8 +428,8 @@ export async function POST(
       );
 
     /*
-      1. تقييم التسجيل مقابل
-         الحرف المطلوب فعلاً.
+      أول تقييم:
+      نقارن التسجيل بالحرف المطلوب.
     */
     const primary =
       await assessAgainstReference(
@@ -461,8 +455,8 @@ export async function POST(
     }
 
     /*
-      2. نجيب الحروف التي يمكن
-         الخلط بينها وبين المطلوب.
+      نجيب كل الحروف القريبة
+      من الحرف المطلوب.
     */
     const alternatives =
       CONFUSION_TARGETS[target] ??
@@ -472,8 +466,8 @@ export async function POST(
       [];
 
     /*
-      3. نفس التسجيل يتقيّم مرة أخرى
-         أمام كل حرف مشابه.
+      نقيم نفس التسجيل مقابل
+      كل حرف مشابه.
     */
     for (
       const alternative of alternatives
@@ -491,9 +485,6 @@ export async function POST(
       );
     }
 
-    /*
-      4. نعرف أقوى منافس.
-    */
     const validAlternatives =
       contrastResults.filter(
         (
@@ -505,6 +496,9 @@ export async function POST(
           "number"
       );
 
+    /*
+      أعلى حرف منافس.
+    */
     const bestAlternative =
       validAlternatives.sort(
         (a, b) =>
@@ -513,17 +507,17 @@ export async function POST(
       )[0];
 
     /*
-      5. لو Speech-to-Text نفسه
-         قال بوضوح إن الطالب نطق
-         الحرف الآخر، نرفضه.
+      لو Azure نفسه كتب حرفًا
+      من الحروف البديلة،
+      نرفض الإجابة مباشرة.
     */
     const normalizedRecognized =
       normalizeArabic(
         primary.recognized
       );
 
-    const recognizedAsAlternative =
-      alternatives.some(
+    const recognizedAlternative =
+      alternatives.find(
         (alternative) =>
           normalizeArabic(
             alternative
@@ -532,8 +526,8 @@ export async function POST(
       );
 
     /*
-      6. نحسب الفارق بين المطلوب
-         وأقرب حرف مشابه.
+      فرق الدرجة بين المطلوب
+      وأقرب منافس.
     */
     const contrastMargin =
       bestAlternative
@@ -541,14 +535,6 @@ export async function POST(
           bestAlternative.accuracy
         : null;
 
-    /*
-      النجاح العادي:
-      Accuracy >= 75
-
-      ولو عندنا حرف مشابه:
-      لازم المطلوب يتفوق عليه
-      بفارق 5 درجات على الأقل.
-    */
     const accuracyPassed =
       primary.accuracy >=
       MIN_ACCURACY;
@@ -562,7 +548,7 @@ export async function POST(
     const passed =
       accuracyPassed &&
       contrastPassed &&
-      !recognizedAsAlternative;
+      !recognizedAlternative;
 
     let failureReason:
       | "low_accuracy"
@@ -574,22 +560,13 @@ export async function POST(
       failureReason =
         "low_accuracy";
     } else if (
-      recognizedAsAlternative
+      recognizedAlternative
     ) {
       failureReason =
         "confused_letter";
     } else if (
       !contrastPassed
     ) {
-      /*
-        لو المنافس أعلى من المطلوب:
-        غالبًا قال الحرف المنافس.
-
-        لو الفرق بسيط جدًا:
-        نعتبرها ambiguous
-        ونخليه يعيد بدل ما نحكم
-        عليه حكم غلط.
-      */
       if (
         bestAlternative &&
         bestAlternative.accuracy >
@@ -613,6 +590,17 @@ export async function POST(
 
         targetAccuracy:
           primary.accuracy,
+
+        allAlternatives:
+          validAlternatives.map(
+            (item) => ({
+              target:
+                item.referenceText,
+
+              accuracy:
+                item.accuracy,
+            })
+          ),
 
         bestAlternative:
           bestAlternative
@@ -677,6 +665,17 @@ export async function POST(
                 contrastMargin,
             }
           : null,
+
+      comparisons:
+        validAlternatives.map(
+          (item) => ({
+            target:
+              item.referenceText,
+
+            score:
+              item.accuracy,
+          })
+        ),
 
       words:
         primary.words,
