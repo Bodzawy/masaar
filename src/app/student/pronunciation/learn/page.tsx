@@ -10,6 +10,8 @@ import Link from "next/link";
 import {
   ArrowLeft,
   CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
   Mic,
   RotateCcw,
   Volume2,
@@ -37,16 +39,11 @@ type AssessmentResult = {
 
   scores: Scores;
 
-  words: Array<{
-    word: string;
-    accuracy: number;
-    errorType: string;
-
-    phonemes: Array<{
-      phoneme: string | null;
-      accuracy: number;
-    }>;
-  }>;
+  failureReason?:
+    | "low_accuracy"
+    | "weak_first_sound"
+    | "wrong_letter"
+    | null;
 };
 
 export default function LearnPronunciationPage() {
@@ -71,9 +68,6 @@ export default function LearnPronunciationPage() {
   const [status, setStatus] =
     useState("");
 
-  const [recognized, setRecognized] =
-    useState("");
-
   const [completed, setCompleted] =
     useState(false);
 
@@ -87,11 +81,6 @@ export default function LearnPronunciationPage() {
       null
     );
 
-  /*
-    نضمن إن current موجود دائمًا.
-    لو حصل index غير متوقع،
-    نرجع لأول حرف بدل undefined.
-  */
   const current =
     ARABIC_LETTERS[index] ??
     ARABIC_LETTERS[0]!;
@@ -112,9 +101,7 @@ export default function LearnPronunciationPage() {
         audioRef.current = null;
       }
 
-      if (
-        objectUrlRef.current
-      ) {
+      if (objectUrlRef.current) {
         URL.revokeObjectURL(
           objectUrlRef.current
         );
@@ -141,14 +128,8 @@ export default function LearnPronunciationPage() {
         );
 
       if (!response.ok) {
-        const result =
-          await response
-            .json()
-            .catch(() => null);
-
         throw new Error(
-          result?.error ||
-            "Audio could not be generated."
+          "Audio could not be generated."
         );
       }
 
@@ -196,10 +177,8 @@ export default function LearnPronunciationPage() {
 
   async function startLesson() {
     setStarted(true);
-
     setScores(null);
     setStatus("");
-    setRecognized("");
 
     await playArabic(
       current.modelText
@@ -214,6 +193,79 @@ export default function LearnPronunciationPage() {
     );
   }
 
+  async function goToLetter(
+    newIndex: number
+  ) {
+    if (
+      newIndex < 0 ||
+      newIndex >=
+        ARABIC_LETTERS.length
+    ) {
+      return;
+    }
+
+    setIndex(newIndex);
+    setScores(null);
+    setStatus("");
+
+    const letter =
+      ARABIC_LETTERS[newIndex];
+
+    if (
+      started &&
+      letter
+    ) {
+      await new Promise(
+        (resolve) =>
+          setTimeout(
+            resolve,
+            150
+          )
+      );
+
+      await playArabic(
+        letter.modelText
+      );
+    }
+  }
+
+  async function previousLetter() {
+    if (
+      recording ||
+      evaluating ||
+      audioLoading
+    ) {
+      return;
+    }
+
+    await goToLetter(
+      index - 1
+    );
+  }
+
+  async function nextLetter() {
+    if (
+      recording ||
+      evaluating ||
+      audioLoading
+    ) {
+      return;
+    }
+
+    if (
+      index ===
+      ARABIC_LETTERS.length -
+        1
+    ) {
+      setCompleted(true);
+      return;
+    }
+
+    await goToLetter(
+      index + 1
+    );
+  }
+
   async function startRecording() {
     if (
       recording ||
@@ -225,7 +277,6 @@ export default function LearnPronunciationPage() {
 
     try {
       setScores(null);
-      setRecognized("");
 
       setStatus(
         "🎤 Ich höre zu..."
@@ -339,10 +390,6 @@ export default function LearnPronunciationPage() {
               assessment.scores
             );
 
-            setRecognized(
-              assessment.recognized
-            );
-
             if (
               assessment.passed
             ) {
@@ -362,67 +409,32 @@ export default function LearnPronunciationPage() {
                   )
               );
 
-              const isLast =
+              if (
                 index ===
                 ARABIC_LETTERS.length -
-                  1;
-
-              if (isLast) {
-                setCompleted(
-                  true
-                );
-
-                setStatus(
-                  "🎉 أحسنت! أتممت الحروف."
-                );
-
-                await playArabic(
-                  "أَحْسَنْت"
-                );
+                  1
+              ) {
+                setCompleted(true);
 
                 return;
               }
 
-              const nextIndex =
-                index + 1;
-
-              const nextLetter =
-                ARABIC_LETTERS[
-                  nextIndex
-                ];
-
-              if (!nextLetter) {
-                setCompleted(
-                  true
-                );
-
-                return;
-              }
-
-              setIndex(
-                nextIndex
-              );
-
-              setScores(null);
-              setRecognized("");
-
-              setStatus("");
-
-              await new Promise(
-                (resolve) =>
-                  setTimeout(
-                    resolve,
-                    350
-                  )
-              );
-
-              await playArabic(
-                nextLetter.modelText
+              await goToLetter(
+                index + 1
               );
             } else {
-              setStatus(
-                "🟡 حاول مرة أخرى"
-              );
+              if (
+                assessment.failureReason ===
+                "wrong_letter"
+              ) {
+                setStatus(
+                  "🟠 انتبه إلى صوت الحرف وحاول مرة أخرى"
+                );
+              } else {
+                setStatus(
+                  "🟡 حاول مرة أخرى"
+                );
+              }
 
               await playArabic(
                 "حَاوِلْ مَرَّةً أُخْرَى"
@@ -432,7 +444,7 @@ export default function LearnPronunciationPage() {
                 (resolve) =>
                   setTimeout(
                     resolve,
-                    300
+                    250
                   )
               );
 
@@ -454,9 +466,7 @@ export default function LearnPronunciationPage() {
                   : "Fehler bei der Aussprachebewertung.")
             );
           } finally {
-            setEvaluating(
-              false
-            );
+            setEvaluating(false);
           }
         };
 
@@ -493,9 +503,7 @@ export default function LearnPronunciationPage() {
     setIndex(0);
     setCompleted(false);
     setStarted(false);
-
     setScores(null);
-    setRecognized("");
     setStatus("");
   }
 
@@ -585,9 +593,44 @@ export default function LearnPronunciationPage() {
 
       <div className="rounded-3xl border bg-card p-8 text-center shadow-sm md:p-12">
 
-        <p className="text-sm text-muted-foreground">
-          Buchstabe
-        </p>
+        <div className="flex items-center justify-between">
+
+          <button
+            onClick={
+              previousLetter
+            }
+            disabled={
+              index === 0 ||
+              recording ||
+              evaluating ||
+              audioLoading
+            }
+            className="flex h-12 w-12 items-center justify-center rounded-full border transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-30"
+            aria-label="Vorheriger Buchstabe"
+          >
+            <ChevronLeft className="h-6 w-6" />
+          </button>
+
+          <p className="text-sm text-muted-foreground">
+            Buchstabe
+          </p>
+
+          <button
+            onClick={
+              nextLetter
+            }
+            disabled={
+              recording ||
+              evaluating ||
+              audioLoading
+            }
+            className="flex h-12 w-12 items-center justify-center rounded-full border transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-30"
+            aria-label="Nächster Buchstabe"
+          >
+            <ChevronRight className="h-6 w-6" />
+          </button>
+
+        </div>
 
         <div
           dir="rtl"
@@ -664,66 +707,14 @@ export default function LearnPronunciationPage() {
             </p>
 
             <div className="mt-2 text-5xl font-bold">
-              {
-                scores.accuracy
-              }
+              {scores.accuracy}
 
               <span className="text-xl text-muted-foreground">
                 /100
               </span>
             </div>
 
-            <div className="mt-5 grid grid-cols-3 gap-3 text-sm">
-
-              <div>
-                <p className="font-bold">
-                  {
-                    scores.pronunciation
-                  }
-                </p>
-
-                <p className="text-xs text-muted-foreground">
-                  Aussprache
-                </p>
-              </div>
-
-              <div>
-                <p className="font-bold">
-                  {
-                    scores.fluency
-                  }
-                </p>
-
-                <p className="text-xs text-muted-foreground">
-                  Flüssigkeit
-                </p>
-              </div>
-
-              <div>
-                <p className="font-bold">
-                  {
-                    scores.completeness
-                  }
-                </p>
-
-                <p className="text-xs text-muted-foreground">
-                  Vollständig
-                </p>
-              </div>
-
-            </div>
-
           </div>
-        )}
-
-        {recognized && (
-          <p
-            dir="rtl"
-            className="mt-5 text-lg text-muted-foreground"
-          >
-            سمعنا:{" "}
-            {recognized}
-          </p>
         )}
 
         {status && (

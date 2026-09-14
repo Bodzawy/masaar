@@ -9,14 +9,18 @@ export const dynamic = "force-dynamic";
 
 const LANGUAGE = "ar-EG";
 
-const MIN_ACCURACY = 72;
-const MIN_FIRST_SOUND_SCORE = 65;
+/*
+  خففنا الشروط شوية حتى لا نرفض
+  النطق الصحيح مثل "ثاء".
+*/
+const MIN_ACCURACY = 65;
+const MIN_FIRST_SOUND_SCORE = 55;
 
 /*
-  لازم نطق الحرف المطلوب يتفوق
-  على أقرب نطق خاطئ بالفارق ده.
+  لا نعتبر أن الطالب قال الحرف الخطأ
+  إلا لو المنافس تفوق بوضوح.
 */
-const MIN_MARGIN = 10;
+const WRONG_LETTER_MARGIN = 8;
 
 const allowedTargets = new Set(
   ARABIC_LETTERS.map(
@@ -24,34 +28,20 @@ const allowedTargets = new Set(
   )
 );
 
-/*
-  هنا مش بس بنحط أسماء حروف أخرى.
-
-  بنحط كمان الأخطاء اللي اكتشفناها
-  فعليًا أثناء التجربة.
-
-  مثال:
-  ذال → زال
-  عين → أين
-*/
 const CONFUSION_REFERENCES: Record<
   string,
   string[]
 > = {
-  تاء: [
-    "ثاء",
-    "طاء",
-  ],
+  تاء: ["ثاء", "طاء"],
 
   ثاء: [
     "تاء",
     "فاء",
+    "سين",
     "طاء",
   ],
 
-  جيم: [
-    "شيم",
-  ],
+  جيم: ["شيم"],
 
   حاء: [
     "هاء",
@@ -103,6 +93,7 @@ const CONFUSION_REFERENCES: Record<
 
   طاء: [
     "تاء",
+    "ثاء",
     "ظاء",
   ],
 
@@ -129,13 +120,9 @@ const CONFUSION_REFERENCES: Record<
     "باء",
   ],
 
-  قاف: [
-    "كاف",
-  ],
+  قاف: ["كاف"],
 
-  كاف: [
-    "قاف",
-  ],
+  كاف: ["قاف"],
 
   هاء: [
     "حاء",
@@ -301,16 +288,12 @@ async function assessAudio(
     ) {
       return {
         referenceText,
-
         recognized: "",
-
         accuracy: null,
         pronunciation: null,
         fluency: null,
         completeness: null,
-
         firstSoundScore: null,
-
         words: [],
       };
     }
@@ -328,10 +311,8 @@ async function assessAudio(
         "AZURE CANCELED:",
         {
           referenceText,
-
           reason:
             cancellation.reason,
-
           errorDetails:
             cancellation.errorDetails,
         }
@@ -431,18 +412,6 @@ async function assessAudio(
       );
     }
 
-    /*
-      أهم حاجة عندنا في أسماء الحروف
-      هي أول صوت.
-
-      مثال:
-
-      ذال / زال
-      الاختلاف في أول صوت.
-
-      سين / صين
-      الاختلاف في أول صوت.
-    */
     const firstSoundScore =
       words[0]
         ?.phonemes[0]
@@ -456,15 +425,10 @@ async function assessAudio(
         result.text ?? "",
 
       accuracy,
-
       pronunciation,
-
       fluency,
-
       completeness,
-
       firstSoundScore,
-
       words,
     };
   } finally {
@@ -481,14 +445,6 @@ async function assessAudio(
 function discriminationScore(
   result: AssessmentResult
 ): number | null {
-  /*
-    نعطي أول صوت أهمية أكبر
-    من بقية اسم الحرف.
-
-    لو Azure لم يرجع phoneme،
-    نستخدم Accuracy العادية.
-  */
-
   if (
     result.firstSoundScore !==
       null &&
@@ -496,9 +452,9 @@ function discriminationScore(
   ) {
     return Math.round(
       result.firstSoundScore *
-        0.75 +
+        0.8 +
         result.accuracy *
-          0.25
+          0.2
     );
   }
 
@@ -574,9 +530,6 @@ export async function POST(
         await audio.arrayBuffer()
       );
 
-    /*
-      1. قيّم الحرف الصحيح.
-    */
     const primary =
       await assessAudio(
         audioBuffer,
@@ -600,10 +553,6 @@ export async function POST(
       );
     }
 
-    /*
-      2. قيّم نفس التسجيل
-         ضد الأخطاء المحتملة.
-    */
     const alternatives =
       CONFUSION_REFERENCES[target] ??
       [];
@@ -655,11 +604,15 @@ export async function POST(
     const bestAlternative =
       scoredAlternatives[0];
 
+    const alternativeScore =
+      bestAlternative?.score ??
+      null;
+
     const margin =
       targetScore !== null &&
-      bestAlternative
+      alternativeScore !== null
         ? targetScore -
-          bestAlternative.score
+          alternativeScore
         : null;
 
     const accuracyPassed =
@@ -673,29 +626,28 @@ export async function POST(
         MIN_FIRST_SOUND_SCORE;
 
     /*
-      لو عندنا أخطاء مشابهة،
-      لازم الحرف الصحيح يكسب
-      بفارق واضح.
+      أهم تعديل:
 
-      لو مش واضح:
-      لا نقول ممتاز.
-      نخليه يعيد.
+      لو المنافس قريب فقط،
+      لا نرفض الطالب.
+
+      نرفض فقط لو المنافس نفسه
+      متفوق على المطلوب بفارق واضح.
     */
-    const contrastPassed =
-      !bestAlternative ||
-      (margin !== null &&
-        margin >= MIN_MARGIN);
+    const clearlyWrongLetter =
+      margin !== null &&
+      margin <=
+        -WRONG_LETTER_MARGIN;
 
     const passed =
       accuracyPassed &&
       firstSoundPassed &&
-      contrastPassed;
+      !clearlyWrongLetter;
 
     let failureReason:
       | "low_accuracy"
       | "weak_first_sound"
       | "wrong_letter"
-      | "ambiguous"
       | null = null;
 
     if (!accuracyPassed) {
@@ -707,17 +659,10 @@ export async function POST(
       failureReason =
         "weak_first_sound";
     } else if (
-      bestAlternative &&
-      margin !== null &&
-      margin < 0
+      clearlyWrongLetter
     ) {
       failureReason =
         "wrong_letter";
-    } else if (
-      !contrastPassed
-    ) {
-      failureReason =
-        "ambiguous";
     }
 
     console.log(
@@ -728,37 +673,18 @@ export async function POST(
         targetAccuracy:
           primary.accuracy,
 
-        targetFirstSound:
+        firstSound:
           primary.firstSoundScore,
 
         targetScore,
 
-        alternatives:
-          scoredAlternatives.map(
-            (item) => ({
-              reference:
-                item.result
-                  .referenceText,
-
-              accuracy:
-                item.result
-                  .accuracy,
-
-              firstSound:
-                item.result
-                  .firstSoundScore,
-
-              score:
-                item.score,
-            })
-          ),
-
-        bestAlternative:
+        closestAlternative:
           bestAlternative
-            ? bestAlternative
-                .result
-                .referenceText
-            : null,
+            ?.result
+            .referenceText ??
+          null,
+
+        alternativeScore,
 
         margin,
 
@@ -771,11 +697,6 @@ export async function POST(
     return Response.json({
       target,
 
-      /*
-        ما نعرضش للطالب
-        Speech-to-Text هنا؛
-        لأنه ممكن يكون مضلل.
-      */
       recognized: "",
 
       passed,
@@ -806,15 +727,11 @@ export async function POST(
 
         closestAlternative:
           bestAlternative
-            ? bestAlternative
-                .result
-                .referenceText
-            : null,
+            ?.result
+            .referenceText ??
+          null,
 
-        alternativeScore:
-          bestAlternative
-            ? bestAlternative.score
-            : null,
+        alternativeScore,
 
         margin,
       },
