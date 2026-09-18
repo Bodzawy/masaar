@@ -20,6 +20,7 @@ const MIN_FIRST_SOUND_SCORE = 55;
   لا نعتبر أن الطالب قال الحرف الخطأ
   إلا لو المنافس تفوق بوضوح.
 */
+
 const WRONG_LETTER_MARGIN = 8;
 
 const allowedTargets = new Set(
@@ -37,7 +38,7 @@ const CONFUSION_REFERENCES: Record<
   ثاء: [
     "تاء",
     "فاء",
-    "سين",
+    "ساء",
     "طاء",
   ],
 
@@ -530,6 +531,95 @@ export async function POST(
         await audio.arrayBuffer()
       );
 
+      // ==========================
+      // MASAAR
+      // ==========================
+      let masaar: any = null;
+
+      try {
+        const masaarForm = new FormData();
+
+        masaarForm.append(
+          "audio",
+          new Blob([audioBuffer]),
+          "voice.wav"
+        );
+
+        console.log("CALLING MASAAR...");
+
+        const masaarResponse = await fetch(
+          "http://127.0.0.1:5001/predict",
+          {
+            method: "POST",
+            body: masaarForm,
+          }
+        );
+
+        console.log(
+          "MASAAR STATUS:",
+          masaarResponse.status
+        );
+
+        const text = await masaarResponse.text();
+
+        console.log("MASAAR RAW:", text);
+
+        masaar = JSON.parse(text);
+      } catch (error) {
+        console.error("MASAAR ERROR:", error);
+      }
+
+      console.log("FINAL MASAAR RESULT:", masaar);
+
+      // ==========================
+      // IQRA
+      // ==========================
+      let iqra: any = null;
+
+      try {
+        const iqraForm = new FormData();
+
+        iqraForm.append(
+          "audio",
+          new Blob([audioBuffer]),
+          "voice.wav"
+        );
+
+        console.log("CALLING IQRA...");
+
+        const iqraResponse = await fetch(
+            "http://127.0.0.1:5002/predict",
+          {
+            method: "POST",
+            body: iqraForm,
+          }
+        );
+
+        console.log("IQRA STATUS:", iqraResponse.status);
+
+        const iqraText = await iqraResponse.text();
+
+        console.log("IQRA RAW:", iqraText);
+
+        const iqraJson = JSON.parse(iqraText);
+
+        if (iqraJson.ok === false) {
+          console.error("IQRA MODEL ERROR:", iqraJson.error);
+          iqra = null;
+        } else {
+          iqra = {
+            sequence: iqraJson.sequence,
+            phonemes: iqraJson.phonemes, // array of strings زي ["f","aa","<"]
+            duration: iqraJson.duration,
+          };
+        }
+      } catch (error) {
+        console.error("IQRA ERROR:", error);
+      }
+
+      console.log("FINAL IQRA RESULT:", iqra);
+
+    
     const primary =
       await assessAudio(
         audioBuffer,
@@ -694,51 +784,67 @@ export async function POST(
       }
     );
 
+    console.log("FINAL MASAAR RESULT:", masaar);
     return Response.json({
-      target,
-
-      recognized: "",
-
-      passed,
-
-      failureReason,
-
-      scores: {
-        accuracy:
-          primary.accuracy,
-
-        pronunciation:
-          primary.pronunciation,
-
-        fluency:
-          primary.fluency ??
-          primary.accuracy,
-
-        completeness:
-          primary.completeness ??
-          100,
-      },
-
-      discrimination: {
-        targetScore,
-
-        firstSoundScore:
-          primary.firstSoundScore,
-
-        closestAlternative:
-          bestAlternative
-            ?.result
-            .referenceText ??
-          null,
-
-        alternativeScore,
-
-        margin,
-      },
-
-      words:
-        primary.words,
-    });
+        target,
+      
+        recognized:
+          primary.recognized,
+      
+        passed,
+      
+        failureReason,
+      
+        scores: {
+          accuracy:
+            primary.accuracy,
+      
+          pronunciation:
+            primary.pronunciation,
+      
+          fluency:
+            primary.fluency ??
+            primary.accuracy,
+      
+          completeness:
+            primary.completeness ??
+            100,
+        },
+      
+        details: {
+          masaar,
+      
+          azure: {
+            recognized:
+              primary.recognized,
+      
+            accuracy:
+              primary.accuracy,
+          },
+      
+          iqra,
+        },
+      
+        discrimination: {
+          targetScore,
+      
+          firstSoundScore:
+            primary.firstSoundScore,
+      
+          closestAlternative:
+            bestAlternative
+              ?.result
+              .referenceText ??
+            null,
+      
+          alternativeScore,
+      
+          margin,
+        },
+      
+        words:
+          primary.words,
+      });
   } catch (error) {
     console.error(
       "PRONUNCIATION API ERROR:",

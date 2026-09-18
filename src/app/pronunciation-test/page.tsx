@@ -1,320 +1,1074 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import {
+  useRef,
+  useState,
+} from "react";
 
-type LetterItem = {
-  letter: string;
-  name: string;
+import Link from "next/link";
+
+import {
+  ArrowLeft,
+  CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
+  Mic,
+  RotateCcw,
+  Volume2,
+} from "lucide-react";
+
+import {
+  ARABIC_LETTERS,
+} from "@/lib/pronunciation/letters";
+
+import {
+  blobTo16KhzMonoWav,
+} from "@/lib/audio/wav";
+
+
+type Scores = {
+  accuracy: number;
+  pronunciation: number;
+  fluency: number;
+  completeness: number;
 };
 
-const letters: LetterItem[] = [
-  { letter: "ا", name: "ألف" },
-  { letter: "ب", name: "باء" },
-  { letter: "ت", name: "تاء" },
-  { letter: "ث", name: "ثاء" },
-  { letter: "ج", name: "جيم" },
-  { letter: "ح", name: "حاء" },
-  { letter: "خ", name: "خاء" },
-  { letter: "د", name: "دال" },
-  { letter: "ر", name: "راء" },
-  { letter: "س", name: "سين" },
-];
 
-const firstName = "Lukas";
+type HybridDetails = {
+  masaar?: {
+    letter: string;
+    confidence: number;
+    top3: {
+      letter: string;
+      score: number;
+    }[];
+  };
 
-function getRandomLetter(currentName?: string): LetterItem {
-  const available = letters.filter(
-    (item) => item.name !== currentName
-  );
+  iqra?: {
+    phonemes: string[];
+  };
 
-  const randomIndex = Math.floor(
-    Math.random() * available.length
-  );
+  azure?: {
+    recognized: string;
+    accuracy: number;
+  };
+};
 
-  return (
-    available[randomIndex] ?? {
-      letter: "ا",
-      name: "ألف",
-    }
-  );
-}
 
-function speakGerman(text: string) {
-  if (typeof window === "undefined") return;
+type AssessmentResult = {
+  target: string;
+  recognized: string;
+  passed: boolean;
 
-  window.speechSynthesis.cancel();
+  scores: Scores;
 
-  const utterance = new SpeechSynthesisUtterance(text);
+  details?: HybridDetails;
 
-  utterance.lang = "de-DE";
-  utterance.rate = 0.95;
-  utterance.pitch = 1;
-  utterance.volume = 1;
+  failureReason?:
+    | "low_accuracy"
+    | "weak_first_sound"
+    | "wrong_letter"
+    | null;
+};
 
-  const voices =
-    window.speechSynthesis.getVoices();
 
-  const germanVoices = voices.filter((voice) =>
-    voice.lang.toLowerCase().startsWith("de")
-  );
+export default function LearnPronunciationPage() {
 
-  const preferredVoice =
-    germanVoices.find((voice) =>
-      /premium|enhanced/i.test(voice.name)
-    ) ||
-    germanVoices.find((voice) =>
-      /anna/i.test(voice.name)
-    ) ||
-    germanVoices[0];
+  const [index, setIndex] =
+    useState(0);
 
-  if (preferredVoice) {
-    utterance.voice = preferredVoice;
-  }
-
-  window.speechSynthesis.speak(utterance);
-}
-
-export default function PronunciationTest() {
-  const [current, setCurrent] =
-    useState<LetterItem>(() => getRandomLetter());
-
-  const [status, setStatus] =
-    useState("");
-
-  const [heard, setHeard] =
-    useState("");
+  const [started, setStarted] =
+    useState(false);
 
   const [recording, setRecording] =
     useState(false);
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      speakGerman(
-        `Los, ${firstName}! Lies diesen Buchstaben vor.`
-      );
-    }, 700);
+  const [evaluating, setEvaluating] =
+    useState(false);
 
-    return () => {
-      clearTimeout(timer);
-    };
-  }, [current]);
+  const [audioLoading, setAudioLoading] =
+    useState(false);
 
-  function nextLetter() {
-    setCurrent((previous) =>
-      getRandomLetter(previous.name)
-    );
 
-    setStatus("");
-    setHeard("");
-  }
+  const [scores, setScores] =
+    useState<Scores | null>(null);
 
-  function repeatQuestion() {
-    speakGerman(
-      `Los, ${firstName}! Lies diesen Buchstaben vor.`
-    );
-  }
 
-  async function startRecording() {
-    if (recording) return;
+  const [details, setDetails] =
+    useState<HybridDetails | null>(null);
 
-    const targetName = current.name;
+
+  const [status, setStatus] =
+    useState("");
+
+
+  const [completed, setCompleted] =
+    useState(false);
+
+
+  const audioRef =
+    useRef<HTMLAudioElement | null>(null);
+
+
+  const objectUrlRef =
+    useRef<string | null>(null);
+
+
+
+  const current =
+    ARABIC_LETTERS[index] ??
+    ARABIC_LETTERS[0]!;
+
+
+  const progress =
+    ((index + 1) /
+      ARABIC_LETTERS.length) *
+    100;
+
+
+
+  async function playArabic(
+    text: string
+  ) {
 
     try {
-      setRecording(true);
-      setHeard("");
 
-      setStatus(
-        `🎤 Ich höre dir zu, ${firstName}...`
+      setAudioLoading(true);
+
+
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+
+
+      if (objectUrlRef.current) {
+        URL.revokeObjectURL(
+          objectUrlRef.current
+        );
+
+        objectUrlRef.current = null;
+      }
+
+
+      const response =
+        await fetch(
+          "/api/tts",
+          {
+            method: "POST",
+
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
+
+            body: JSON.stringify({
+              text,
+            }),
+          }
+        );
+
+
+      if (!response.ok) {
+        throw new Error(
+          "Audio could not be generated."
+        );
+      }
+
+
+      const blob =
+        await response.blob();
+
+
+      const url =
+        URL.createObjectURL(blob);
+
+
+      objectUrlRef.current =
+        url;
+
+
+      const audio =
+        new Audio(url);
+
+
+      audioRef.current =
+        audio;
+
+
+      await audio.play();
+
+
+      await new Promise<void>(
+        (resolve) => {
+
+          audio.onended =
+            () => resolve();
+
+          audio.onerror =
+            () => resolve();
+
+        }
       );
 
+
+    } catch(error) {
+
+      console.error(
+        "Arabic audio error:",
+        error
+      );
+
+
+      setStatus(
+        "❌ Die Aussprache konnte nicht abgespielt werden."
+      );
+
+
+    } finally {
+
+      setAudioLoading(false);
+
+    }
+
+  }
+
+
+
+  async function startLesson() {
+
+    setStarted(true);
+
+    setScores(null);
+
+    setDetails(null);
+
+    setStatus("");
+
+
+    await playArabic(
+      current.modelText
+    );
+
+  }
+
+
+
+  async function repeatModel() {
+
+    setStatus("");
+
+    await playArabic(
+      current.modelText
+    );
+
+  }
+
+
+
+  async function goToLetter(
+    newIndex:number
+  ){
+
+    if(
+      newIndex < 0 ||
+      newIndex >= ARABIC_LETTERS.length
+    ){
+      return;
+    }
+
+
+    setIndex(newIndex);
+
+    setScores(null);
+
+    setDetails(null);
+
+    setStatus("");
+
+
+    const letter =
+      ARABIC_LETTERS[newIndex];
+
+
+    if(started && letter){
+
+      await new Promise(
+        resolve =>
+          setTimeout(resolve,150)
+      );
+
+
+      await playArabic(
+        letter.modelText
+      );
+
+    }
+
+  }
+  async function previousLetter() {
+
+    if (
+      recording ||
+      evaluating ||
+      audioLoading
+    ) {
+      return;
+    }
+
+
+    await goToLetter(
+      index - 1
+    );
+
+  }
+
+
+
+  async function nextLetter() {
+
+    if (
+      recording ||
+      evaluating ||
+      audioLoading
+    ) {
+      return;
+    }
+
+
+    if (
+      index ===
+      ARABIC_LETTERS.length - 1
+    ) {
+
+      setCompleted(true);
+
+      return;
+
+    }
+
+
+    await goToLetter(
+      index + 1
+    );
+
+  }
+
+
+
+  async function startRecording() {
+
+    if (
+      recording ||
+      evaluating ||
+      audioLoading
+    ) {
+      return;
+    }
+
+
+    try {
+
+      setScores(null);
+
+      setDetails(null);
+
+      setStatus(
+        "🎤 Ich höre zu..."
+      );
+
+
       const stream =
-        await navigator.mediaDevices.getUserMedia({
-          audio: true,
-        });
+        await navigator
+          .mediaDevices
+          .getUserMedia({
+            audio:true,
+          });
+
 
       const recorder =
-        new MediaRecorder(stream);
+        new MediaRecorder(
+          stream
+        );
 
-      const chunks: Blob[] = [];
 
-      recorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          chunks.push(event.data);
-        }
-      };
+      const chunks:Blob[] = [];
+
+
+      recorder.ondataavailable =
+        (event)=>{
+
+          if(event.data.size > 0){
+
+            chunks.push(
+              event.data
+            );
+
+          }
+
+        };
+
+
+
+      recorder.onstop =
+        async()=>{
+
+
+          stream
+            .getTracks()
+            .forEach(
+              track =>
+                track.stop()
+            );
+
+
+          setRecording(false);
+
+          setEvaluating(true);
+
+
+          setStatus(
+            "⏳ Deine Aussprache wird bewertet..."
+          );
+
+
+
+          try {
+
+
+            const originalBlob =
+              new Blob(
+                chunks,
+                {
+                  type:
+                    recorder.mimeType ||
+                    "audio/webm",
+                }
+              );
+
+
+
+            const wavBlob =
+              await blobTo16KhzMonoWav(
+                originalBlob
+              );
+
+
+
+            const formData =
+              new FormData();
+
+
+
+            formData.append(
+              "audio",
+              wavBlob,
+              "voice.wav"
+            );
+
+
+            formData.append(
+              "target",
+              current.referenceText
+            );
+
+
+
+            const response =
+              await fetch(
+                "/api/pronunciation",
+                {
+                  method:"POST",
+                  body:formData,
+                }
+              );
+
+
+
+            const result =
+              await response.json();
+
+
+
+            if(!response.ok){
+
+              throw new Error(
+                result.error ||
+                "Assessment failed."
+              );
+
+            }
+
+
+
+            const assessment =
+              result as AssessmentResult;
+
+
+
+            setScores(
+              assessment.scores
+            );
+
+
+            setDetails(
+              assessment.details ??
+              null
+            );
+
+
+
+            if(
+              assessment.passed
+            ){
+
+              setStatus(
+                "✅ ممتاز!"
+              );
+
+
+            }else{
+
+
+              if(
+                assessment.failureReason ===
+                "wrong_letter"
+              ){
+
+                setStatus(
+                  "🟠 انتبه إلى صوت الحرف وحاول مرة أخرى"
+                );
+
+              }else{
+
+                setStatus(
+                  "🟡 حاول مرة أخرى"
+                );
+
+              }
+
+            }
+
+
+
+          }catch(error){
+
+
+            console.error(
+              error
+            );
+
+
+            setStatus(
+              "❌ Fehler bei der Aussprachebewertung."
+            );
+
+
+          }finally{
+
+            setEvaluating(false);
+
+          }
+
+
+        };
+
+
+
+      setRecording(true);
+
 
       recorder.start();
 
-      setTimeout(() => {
-        if (
-          recorder.state === "recording"
-        ) {
-          recorder.stop();
-        }
-      }, 2500);
 
-      recorder.onstop = async () => {
-        stream
-          .getTracks()
-          .forEach((track) =>
-            track.stop()
-          );
 
-        setStatus(
-          "⏳ Ich prüfe deine Aussprache..."
-        );
+      setTimeout(
+        ()=>{
 
-        const blob = new Blob(
-          chunks,
-          {
-            type:
-              recorder.mimeType ||
-              "audio/webm",
-          }
-        );
+          if(
+            recorder.state ===
+            "recording"
+          ){
 
-        const formData =
-          new FormData();
+            recorder.stop();
 
-        formData.append(
-          "audio",
-          blob,
-          "voice.webm"
-        );
-
-        formData.append(
-          "target",
-          targetName
-        );
-
-        try {
-          const response =
-            await fetch(
-              "/api/pronunciation",
-              {
-                method: "POST",
-                body: formData,
-              }
-            );
-
-          const result =
-            await response.json();
-
-          if (!response.ok) {
-            setStatus(
-              "❌ " +
-                (result.error ||
-                  "Es ist ein Fehler aufgetreten.")
-            );
-
-            setRecording(false);
-            return;
           }
 
-          setHeard(
-            `Erkannt: ${result.heard}`
-          );
+        },
+        2500
+      );
 
-          if (result.correct) {
-            setStatus(
-              "✅ Sehr gut!"
-            );
 
-            speakGerman(
-              `Super, ${firstName}! Sehr gut gemacht.`
-            );
+    }catch(error){
 
-            setTimeout(() => {
-              nextLetter();
-            }, 1800);
-          } else {
-            setStatus(
-              "❌ Versuch es noch einmal."
-            );
 
-            speakGerman(
-              `Fast, ${firstName}. Versuch es noch einmal.`
-            );
-          }
-        } catch (error) {
-          console.error(error);
+      console.error(
+        error
+      );
 
-          setStatus(
-            "❌ Verbindungsfehler."
-          );
-        }
 
-        setRecording(false);
-      };
-    } catch (error) {
-      console.error(error);
+      setRecording(false);
+
 
       setStatus(
         "❌ Bitte erlaube den Zugriff auf dein Mikrofon."
       );
 
-      setRecording(false);
+
     }
+
   }
 
+
+
+
+  function restartLesson(){
+
+    setIndex(0);
+
+    setCompleted(false);
+
+    setStarted(false);
+
+    setScores(null);
+
+    setDetails(null);
+
+    setStatus("");
+
+  }
+
+
+
+  if(completed){
+
+    return(
+
+      <div className="mx-auto max-w-2xl space-y-6">
+
+
+        <Link
+          href="/student/pronunciation"
+          className="inline-flex items-center gap-2 text-sm text-muted-foreground"
+        >
+
+          <ArrowLeft className="h-4 w-4"/>
+
+          Zurück
+
+        </Link>
+
+
+
+        <div className="rounded-3xl border bg-card p-10 text-center shadow-sm">
+
+
+          <CheckCircle2 className="mx-auto h-16 w-16 text-primary"/>
+
+
+          <h1 className="mt-6 text-3xl font-bold">
+            Sehr gut!
+          </h1>
+
+
+          <p className="mt-3 text-muted-foreground">
+            Du hast alle 28 arabischen Buchstaben geübt.
+          </p>
+
+
+          <button
+            onClick={restartLesson}
+            className="mt-8 rounded-xl bg-primary px-6 py-3 text-primary-foreground"
+          >
+
+            <RotateCcw className="inline h-4 w-4 mr-2"/>
+
+            Noch einmal üben
+
+          </button>
+
+
+        </div>
+
+
+      </div>
+
+    );
+
+  }
   return (
-    <main className="min-h-screen flex items-center justify-center bg-gray-100 p-6">
-      <div className="w-full max-w-lg rounded-3xl bg-white p-10 text-center shadow-lg">
+    <div className="mx-auto max-w-3xl space-y-6">
 
-        <p className="mb-3 text-gray-500">
-          Aussprachetraining
-        </p>
+      <Link
+        href="/student/pronunciation"
+        className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        Zurück
+      </Link>
 
-        <h1 className="mb-3 text-3xl font-bold">
-          Lies den Buchstaben vor
-        </h1>
 
-        <p className="mb-10 text-gray-500">
-          Sprich den Namen des arabischen Buchstabens laut aus.
-        </p>
+      <div className="flex items-end justify-between gap-4">
+
+        <div>
+
+          <p className="text-sm font-medium text-primary">
+            Level 1
+          </p>
+
+          <h1 className="text-3xl font-bold">
+            Arabische Buchstaben
+          </h1>
+
+          <p className="mt-2 text-muted-foreground">
+            Höre gut zu und sprich nach.
+          </p>
+
+        </div>
+
+
+        <div className="text-sm text-muted-foreground">
+
+          {index + 1} / {ARABIC_LETTERS.length}
+
+        </div>
+
+      </div>
+
+
+
+      <div className="h-2 overflow-hidden rounded-full bg-muted">
+
+        <div
+          className="h-full bg-primary transition-all duration-500"
+          style={{
+            width:`${progress}%`,
+          }}
+        />
+
+      </div>
+
+
+
+
+      <div className="rounded-3xl border bg-card p-8 text-center shadow-sm md:p-12">
+
+
+        <div className="flex items-center justify-between">
+
+
+          <button
+            onClick={previousLetter}
+            disabled={
+              index === 0 ||
+              recording ||
+              evaluating ||
+              audioLoading
+            }
+            className="flex h-12 w-12 items-center justify-center rounded-full border disabled:opacity-30"
+          >
+
+            <ChevronLeft className="h-6 w-6"/>
+
+          </button>
+
+
+
+          <p className="text-sm text-muted-foreground">
+            Buchstabe
+          </p>
+
+
+
+          <button
+            onClick={nextLetter}
+            disabled={
+              recording ||
+              evaluating ||
+              audioLoading
+            }
+            className="flex h-12 w-12 items-center justify-center rounded-full border disabled:opacity-30"
+          >
+
+            <ChevronRight className="h-6 w-6"/>
+
+          </button>
+
+
+        </div>
+
+
+
 
         <div
           dir="rtl"
-          className="mb-10 text-9xl font-bold"
+          className="my-8 text-[9rem] font-bold leading-none md:text-[11rem]"
         >
           {current.letter}
         </div>
 
-        <div className="flex flex-col items-center gap-3">
+
+
+
+        {!started ? (
 
           <button
-            onClick={startRecording}
-            disabled={recording}
-            className="rounded-xl bg-black px-8 py-4 text-xl text-white disabled:opacity-50"
+            onClick={startLesson}
+            disabled={audioLoading}
+            className="rounded-xl bg-primary px-8 py-4 text-lg font-semibold text-primary-foreground"
           >
-            {recording
-              ? "🎤 Ich höre zu..."
-              : "🎤 Sprechen"}
+
+            {audioLoading
+              ? "Wird geladen..."
+              : "Lektion starten"
+            }
+
           </button>
 
-          <button
-            onClick={repeatQuestion}
-            disabled={recording}
-            className="rounded-xl border border-gray-300 px-6 py-3 text-lg disabled:opacity-50"
-          >
-            🔊 Noch einmal hören
-          </button>
 
-        </div>
+        ) : (
 
-        {heard && (
-          <p className="mt-8 text-xl">
-            {heard}
-          </p>
+
+          <div className="space-y-4">
+
+
+            <button
+              onClick={repeatModel}
+              disabled={
+                recording ||
+                evaluating ||
+                audioLoading
+              }
+              className="inline-flex items-center gap-2 rounded-xl border px-6 py-4"
+            >
+
+              <Volume2 className="h-5 w-5"/>
+
+              Noch einmal anhören
+
+            </button>
+
+
+
+
+            <button
+              onClick={startRecording}
+              disabled={
+                recording ||
+                evaluating ||
+                audioLoading
+              }
+              className="inline-flex items-center gap-2 rounded-xl bg-primary px-8 py-4 text-lg font-semibold text-primary-foreground"
+            >
+
+              <Mic className="h-5 w-5"/>
+
+
+              {recording
+                ? "Ich höre zu..."
+                : evaluating
+                  ? "Wird bewertet..."
+                  : "Jetzt nachsprechen"
+              }
+
+
+            </button>
+
+
+          </div>
+
         )}
+
+
+
+
+
+
+        {scores && (
+
+          <div className="mx-auto mt-8 max-w-md space-y-4">
+
+
+            <div className="rounded-2xl bg-muted/50 p-6">
+
+
+              <p className="text-sm text-muted-foreground">
+                Aussprache
+              </p>
+
+
+              <div className="mt-2 text-5xl font-bold">
+
+                {scores.accuracy}
+
+                <span className="text-xl text-muted-foreground">
+                  /100
+                </span>
+
+              </div>
+
+
+            </div>
+
+
+
+
+
+            {details && (
+
+              <div className="rounded-2xl border p-6 text-left space-y-6">
+
+
+                <h2 className="text-xl font-bold">
+                  Analyse
+                </h2>
+
+
+
+
+                {details.masaar && (
+
+                  <div>
+
+                    <h3 className="font-semibold">
+                      🤖 MASAAR
+                    </h3>
+
+
+                    <p className="mt-1">
+
+                      {details.masaar.letter}
+
+                      {" "}
+
+                      ({details.masaar.confidence.toFixed(1)}%)
+
+                    </p>
+
+
+
+                    <p className="mt-3 text-sm text-muted-foreground">
+                      Top 3 MASAAR:
+                    </p>
+
+
+
+                    {details.masaar.top3.map(
+                      (item,index)=>(
+                        <p key={index}>
+
+                          {item.letter}
+
+                          {" "}
+
+                          {item.score.toFixed(1)}%
+
+                        </p>
+                      )
+                    )}
+
+
+                  </div>
+
+                )}
+
+
+
+
+
+
+                {details.iqra && (
+
+                  <div>
+
+                    <h3 className="font-semibold">
+                      🎧 IQRA
+                    </h3>
+
+
+                    <p className="mt-1 font-mono">
+
+                      {details.iqra.phonemes.join(" ")}
+
+                    </p>
+
+
+                  </div>
+
+                )}
+
+
+
+
+
+
+
+                {details.azure && (
+
+                  <div>
+
+
+                    <h3 className="font-semibold">
+                      ☁️ Azure
+                    </h3>
+
+
+
+                    <p>
+                      Recognized:
+                      {" "}
+                      {details.azure.recognized}
+                    </p>
+
+
+
+                    <p>
+                      Accuracy:
+                      {" "}
+                      {details.azure.accuracy}%
+                    </p>
+
+
+                  </div>
+
+                )}
+
+
+
+
+
+
+              </div>
+
+            )}
+
+
+
+
+          </div>
+
+        )}
+
+
+
+
+
 
         {status && (
-          <p className="mt-5 text-2xl font-bold">
+
+          <p className="mt-6 text-xl font-bold">
+
             {status}
+
           </p>
+
         )}
 
+
+
       </div>
-    </main>
+
+
+    </div>
   );
 }
