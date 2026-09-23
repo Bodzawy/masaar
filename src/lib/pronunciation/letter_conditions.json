@@ -1,0 +1,627 @@
+{
+    "ألف": {
+      "excellent": {
+        "conditions": [
+          "azure_accuracy >= 70"
+        ],
+        "message": "ممتاز 👏 نطقت حرف الألف بشكل صحيح"
+      },
+      "correct_letter_needs_improvement": {
+        "conditions": [
+          "azure_accuracy < 70"
+        ],
+        "message": " حاول تحسين طريقة النطق"
+      }
+    },
+  
+    "باء": {
+      "excellent": {
+        "conditions": [
+          "azure_accuracy >= 70"
+        ],
+        "message": "ممتاز 👏 نطقت حرف الباء بشكل صحيح"
+      },
+      "wrong": {
+        "conditions": [
+          "azure_accuracy < 70"
+        ],
+        "message": "حاول مرة أخرى، نريد حرف الباء"
+      }
+    },
+  
+    "تاء": {
+      "excellent": {
+        "conditions": [
+          "azure_accuracy >= 70"
+        ],
+        "message": "ممتاز 👏 نطقت حرف التاء بشكل صحيح"
+      },
+      "wrong": {
+        "conditions": [
+          "azure_accuracy < 70"
+        ],
+        "message": "حاول مرة أخرى، نريد حرف التاء"
+      }
+    },
+  
+    "ثاء": {
+      "excellent": {
+        "conditions": [
+          "azure_accuracy >= 70",
+          "iqra_phonemes contains ['f','aa']"
+        ],
+        "message": "ممتاز 👏 نطقت حرف الثاء بشكل صحيح"
+      },
+  
+      "said_sin": {
+        "conditions": [
+          "azure_accuracy >= 70",
+          "iqra_phonemes contains ['s','aa']"
+        ],
+        "message": "أنت قلت سين، أخرج طرف اللسان قليلًا بين الأسنان"
+      },
+  
+      "said_ta": {
+        "conditions": [
+          "azure_accuracy >= 70",
+          "iqra_phonemes contains ['t','aa']"
+        ],
+        "message": "أنت قلت تاء، حاول إخراج الهواء مع طرف اللسان"
+      },
+  
+      "wrong": {
+        "conditions": [
+          "azure_accuracy < 70"
+        ],
+        "message": "حاول مرة أخرى، نريد حرف الثاء"
+      }
+    },
+
+    "جيم": {
+      "excellent": {
+        "conditions": [
+          "azure_accuracy >= 70",
+          "iqra_phonemes contains ['j','ii','m']"
+        ],
+        "message": "ممتاز 👏 نطقت حرف الجيم بشكل صحيح"
+      },
+  
+      "needs_improvement": {
+        "conditions": [
+          "azure_accuracy >= 70",
+          "iqra_phonemes does not contain ['j','ii','m']"
+        ],
+        "message": "اخترت حرف الجيم، لكن حاول تحسين طريقة النطق"
+      },
+  
+      "wrong": {
+        "conditions": [
+          "azure_accuracy < 70"
+        ],
+        "message": "حاول مرة أخرى، نريد حرف الجيم"
+      }
+    },
+  
+  
+    "حاء": {
+      "excellent": {
+        "conditions": [
+          "azure_accuracy >= 70",
+          "iqra_phonemes contains H"
+        ],
+        "message": "ممتاز 👏 نطقت حرف الحاء بشكل صحيح"
+      },
+  
+      "said_haa": {
+        "conditions": [
+          "azure_accuracy >= 70",
+          "iqra_phonemes contains h"
+        ],
+        "message": "لا، أنت قلت حرف الهاء. حاول إخراج الصوت من وسط الحلق"
+      },
+  
+      "wrong": {
+        "conditions": [
+          "azure_accuracy < 70"
+        ],
+        "message": "حاول مرة أخرى، نريد حرف الحاء"
+      }
+    },
+  
+  
+    "خاء": {
+      "excellent": {
+        "conditions": [
+          "azure_accuracy >= 70",
+          "iqra_phonemes contains ['x','AA']"
+        ],
+        "message": "ممتاز 👏 نطقت حرف الخاء بشكل صحيح"
+      },
+  
+      "needs_improvement": {
+        "conditions": [
+          "azure_accuracy >= 70",
+          "iqra_phonemes does not contain ['x','AA']"
+        ],
+        "message": "اخترت حرف الخاء، لكن حاول تحسين مخرج الحرف"
+      },
+  
+      "wrong": {
+        "conditions": [
+          "azure_accuracy < 70"
+        ],
+        "message": "حاول مرة أخرى، نريد حرف الخاء"
+      }
+    },
+  
+  
+    "دال": {
+      "excellent": {
+        "conditions": [
+          "azure_accuracy >= 70",
+          "iqra_phonemes contains ['d','aa']"
+        ],
+        "message": "ممتاز 👏 نطقت حرف الدال بشكل صحيح"
+      },
+  
+      "tafkhim": {
+        "conditions": [
+          "azure_accuracy >= 70",
+          "iqra_phonemes contains AA"
+        ],
+        "message": "لا، أنت فخمت الحرف. حاول نطق الدال مرققة"
+      },
+  
+      "wrong": {
+        "conditions": [
+          "azure_accuracy < 70"
+        ],
+        "message": "حاول مرة أخرى، نريد حرف الدال"
+      }
+    },
+  
+  
+    "ذال": {
+      "excellent": {
+        "conditions": [
+          "azure_accuracy >= 70",
+          "iqra_phonemes does not contain z"
+        ],
+        "message": "ممتاز 👏 نطقت حرف الذال بشكل صحيح"
+      },
+  
+      "said_zay": {
+        "conditions": [
+          "azure_accuracy >= 70",
+          "iqra_phonemes contains z"
+        ],
+        "message": "لا، طلع لسانك. أنت قلت زاي"
+      },
+  
+      "wrong": {
+        "conditions": [
+          "azure_accuracy < 70"
+        ],
+        "message": "حاول مرة أخرى، نريد حرف الذال"
+      }
+    },
+  
+  
+    "راء": {
+      "excellent": {
+        "conditions": [
+          "azure_accuracy >= 70"
+        ],
+        "message": "ممتاز 👏 نطقت حرف الراء بشكل صحيح"
+      },
+  
+      "wrong": {
+        "conditions": [
+          "azure_accuracy < 70"
+        ],
+        "message": "حاول مرة أخرى، نريد حرف الراء"
+      }
+    },
+  
+  
+    "زاي": {
+      "excellent": {
+        "conditions": [
+          "azure_accuracy >= 70"
+        ],
+        "message": "ممتاز 👏 نطقت حرف الزاي بشكل صحيح"
+      },
+  
+      "wrong": {
+        "conditions": [
+          "azure_accuracy < 70"
+        ],
+        "message": "حاول مرة أخرى، نريد حرف الزاي"
+      }
+    },
+  
+  
+    "سين": {
+      "excellent": {
+        "conditions": [
+          "azure_accuracy >= 70"
+        ],
+        "message": "ممتاز 👏 نطقت حرف السين بشكل صحيح"
+      },
+  
+      "wrong": {
+        "conditions": [
+          "azure_accuracy < 70"
+        ],
+        "message": "حاول مرة أخرى، نريد حرف السين"
+      }
+    },
+  
+  
+    "شين": {
+      "excellent": {
+        "conditions": [
+          "azure_accuracy >= 70"
+        ],
+        "message": "ممتاز 👏 نطقت حرف الشين بشكل صحيح"
+      },
+  
+      "wrong": {
+        "conditions": [
+          "azure_accuracy < 70"
+        ],
+        "message": "حاول مرة أخرى، نريد حرف الشين"
+      }
+    },
+  
+  
+    "صاد": {
+      "excellent": {
+        "conditions": [
+          "azure_accuracy >= 70",
+          "iqra_phonemes contains ['S','AA']"
+        ],
+        "message": "ممتاز 👏 نطقت حرف الصاد بشكل صحيح"
+      },
+  
+      "said_sin": {
+        "conditions": [
+          "azure_accuracy >= 70",
+          "iqra_phonemes contains ['s','aa']"
+        ],
+        "message": "لا، أنت قلت سين. حاول تفخيم الحرف"
+      },
+  
+      "wrong": {
+        "conditions": [
+          "azure_accuracy < 70"
+        ],
+        "message": "حاول مرة أخرى، نريد حرف الصاد"
+      }
+    },
+
+    "ضاد": {
+      "excellent": {
+        "conditions": [
+          "azure_accuracy >= 70",
+          "iqra_phonemes contains ['D','A']"
+        ],
+        "message": "ممتاز 👏 نطقت حرف الضاد بشكل صحيح"
+      },
+  
+      "tafkhim_wrong": {
+        "conditions": [
+          "azure_accuracy >= 70",
+          "iqra_phonemes contains ['d','aa']"
+        ],
+        "message": "لا، حاول ضبط تفخيم حرف الضاد"
+      },
+  
+      "wrong": {
+        "conditions": [
+          "azure_accuracy < 70"
+        ],
+        "message": "حاول مرة أخرى، نريد حرف الضاد"
+      }
+    },
+  
+  
+    "طاء": {
+      "excellent": {
+        "conditions": [
+          "azure_accuracy >= 70",
+          "iqra_phonemes contains ['T','AA']"
+        ],
+        "message": "ممتاز 👏 نطقت حرف الطاء بشكل صحيح"
+      },
+  
+      "not_tafkheem": {
+        "conditions": [
+          "azure_accuracy >= 70",
+          "iqra_phonemes contains ['t','aa']"
+        ],
+        "message": "لا، حاول تفخيم حرف الطاء"
+      },
+  
+      "wrong": {
+        "conditions": [
+          "azure_accuracy < 70"
+        ],
+        "message": "حاول مرة أخرى، نريد حرف الطاء"
+      }
+    },
+  
+  
+    "ظاء": {
+      "excellent": {
+        "conditions": [
+          "azure_accuracy >= 70",
+          "iqra_phonemes contains ['Z','AA']"
+        ],
+        "message": "ممتاز 👏 نطقت حرف الظاء بشكل صحيح"
+      },
+  
+      "not_tafkheem": {
+        "conditions": [
+          "azure_accuracy >= 70",
+          "iqra_phonemes contains ['z','aa']"
+        ],
+        "message": "لا، حاول تفخيم حرف الظاء"
+      },
+  
+      "wrong": {
+        "conditions": [
+          "azure_accuracy < 70"
+        ],
+        "message": "حاول مرة أخرى، نريد حرف الظاء"
+      }
+    },
+  
+  
+    "عين": {
+      "excellent": {
+        "conditions": [
+          "azure_accuracy >= 70",
+          "iqra_phonemes contains ['E','a','y']"
+        ],
+        "message": "ممتاز 👏 نطقت حرف العين بشكل صحيح"
+      },
+  
+      "needs_improvement": {
+        "conditions": [
+          "azure_accuracy >= 70",
+          "iqra_phonemes does not contain ['E','a','y']"
+        ],
+        "message": "حاول إشباع صوت العين"
+      },
+  
+      "wrong": {
+        "conditions": [
+          "azure_accuracy < 70"
+        ],
+        "message": "حاول مرة أخرى، نريد حرف العين"
+      }
+    },
+  
+  
+    "غين": {
+      "excellent": {
+        "conditions": [
+          "azure_accuracy >= 70",
+          "iqra_phonemes contains ['g','A','y']"
+        ],
+        "message": "ممتاز 👏 نطقت حرف الغين بشكل صحيح"
+      },
+  
+      "said_jeem": {
+        "conditions": [
+          "azure_accuracy >= 70",
+          "iqra_phonemes contains d"
+        ],
+        "message": "لا، أنت قلت حرف الجيم"
+      },
+  
+      "needs_improvement": {
+        "conditions": [
+          "azure_accuracy >= 70",
+          "iqra_phonemes does not contain ['g','A','y']",
+          "iqra_phonemes does not contain d"
+        ],
+        "message": "حاول إظهار صوت الغين بشكل أوضح"
+      },
+  
+      "wrong": {
+        "conditions": [
+          "azure_accuracy < 70"
+        ],
+        "message": "حاول مرة أخرى، نريد حرف الغين"
+      }
+    },
+  
+  
+    "فاء": {
+      "excellent": {
+        "conditions": [
+          "azure_accuracy >= 70",
+          "iqra_phonemes contains ['f','aa']"
+        ],
+        "message": "ممتاز 👏 نطقت حرف الفاء بشكل صحيح"
+      },
+  
+      "needs_improvement": {
+        "conditions": [
+          "azure_accuracy >= 70",
+          "iqra_phonemes does not contain ['f','aa']"
+        ],
+        "message": "حاول تحسين مخرج حرف الفاء"
+      },
+  
+      "wrong": {
+        "conditions": [
+          "azure_accuracy < 70"
+        ],
+        "message": "حاول مرة أخرى، نريد حرف الفاء"
+      }
+    },
+  
+  
+    "قاف": {
+      "excellent": {
+        "conditions": [
+          "azure_accuracy >= 70",
+          "iqra_phonemes contains q"
+        ],
+        "message": "ممتاز 👏 نطقت حرف القاف بشكل صحيح"
+      },
+  
+      "said_kaf": {
+        "conditions": [
+          "azure_accuracy >= 70",
+          "iqra_phonemes contains k"
+        ],
+        "message": "لا، أنت قلت كاف. حاول إخراج القاف من أقصى اللسان"
+      },
+  
+      "wrong": {
+        "conditions": [
+          "azure_accuracy < 70"
+        ],
+        "message": "حاول مرة أخرى، نريد حرف القاف"
+      }
+    },
+  
+  
+    "كاف": {
+      "excellent": {
+        "conditions": [
+          "azure_accuracy >= 70",
+          "iqra_phonemes contains k"
+        ],
+        "message": "ممتاز 👏 نطقت حرف الكاف بشكل صحيح"
+      },
+  
+      "said_qaf": {
+        "conditions": [
+          "azure_accuracy >= 70",
+          "iqra_phonemes contains q"
+        ],
+        "message": "لا، أنت قلت قاف. حاول ترقيق الحرف ونطقه من مخرج الكاف"
+      },
+  
+      "wrong": {
+        "conditions": [
+          "azure_accuracy < 70"
+        ],
+        "message": "حاول مرة أخرى، نريد حرف الكاف"
+      }
+    },
+    "لام": {
+      "excellent": {
+        "conditions": [
+          "azure_accuracy >= 70"
+        ],
+        "message": "ممتاز 👏 نطقت حرف اللام بشكل صحيح"
+      },
+  
+      "wrong": {
+        "conditions": [
+          "azure_accuracy < 70"
+        ],
+        "message": "حاول مرة أخرى، نريد حرف اللام"
+      }
+    },
+  
+  
+    "ميم": {
+      "excellent": {
+        "conditions": [
+          "azure_accuracy >= 70"
+        ],
+        "message": "ممتاز 👏 نطقت حرف الميم بشكل صحيح"
+      },
+  
+      "wrong": {
+        "conditions": [
+          "azure_accuracy < 70"
+        ],
+        "message": "حاول مرة أخرى، نريد حرف الميم"
+      }
+    },
+  
+  
+    "نون": {
+      "excellent": {
+        "conditions": [
+          "azure_accuracy >= 70"
+        ],
+        "message": "ممتاز 👏 نطقت حرف النون بشكل صحيح"
+      },
+  
+      "wrong": {
+        "conditions": [
+          "azure_accuracy < 70"
+        ],
+        "message": "حاول مرة أخرى، نريد حرف النون"
+      }
+    },
+  
+  
+    "هاء": {
+      "excellent": {
+        "conditions": [
+          "azure_accuracy >= 70",
+          "iqra_phonemes contains h"
+        ],
+        "message": "ممتاز 👏 نطقت حرف الهاء بشكل صحيح"
+      },
+  
+      "said_haa": {
+        "conditions": [
+          "azure_accuracy >= 70",
+          "iqra_phonemes contains H"
+        ],
+        "message": "لا، أنت قلت حرف الحاء"
+      },
+  
+      "wrong": {
+        "conditions": [
+          "azure_accuracy < 70"
+        ],
+        "message": "حاول مرة أخرى، نريد حرف الهاء"
+      }
+    },
+  
+  
+    "واو": {
+      "excellent": {
+        "conditions": [
+          "azure_accuracy >= 70"
+        ],
+        "message": "ممتاز 👏 نطقت حرف الواو بشكل صحيح"
+      },
+  
+      "wrong": {
+        "conditions": [
+          "azure_accuracy < 70"
+        ],
+        "message": "حاول مرة أخرى، نريد حرف الواو"
+      }
+    },
+  
+  
+    "ياء": {
+      "excellent": {
+        "conditions": [
+          "azure_accuracy >= 70"
+        ],
+        "message": "ممتاز 👏 نطقت حرف الياء بشكل صحيح"
+      },
+  
+      "wrong": {
+        "conditions": [
+          "azure_accuracy < 70"
+        ],
+        "message": "حاول مرة أخرى، نريد حرف الياء"
+      }
+    }
+  }

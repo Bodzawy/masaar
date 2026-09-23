@@ -33,6 +33,28 @@ type Scores = {
   completeness: number;
 };
 
+type MasaarResult = {
+  letter?: string;
+  confidence?: number;
+  top3?: Array<{
+    label?: string;
+    letter?: string;
+    confidence?: number;
+    score?: number;
+  }>;
+};
+
+type IqraResult = {
+  sequence?: string;
+  phonemes?: string[];
+  duration?: number;
+};
+
+type AzureResult = {
+  recognized: string;
+  accuracy: number | null;
+};
+
 
 type AssessmentResult = {
     target: string;
@@ -40,9 +62,9 @@ type AssessmentResult = {
     passed: boolean;
   
     details?: {
-      masaar?: any;
-      iqra?: any;      // ⬅️ أضف دي
-      azure?: any;   // ⬅️ أضف دي
+      masaar?: MasaarResult | null;
+      iqra?: IqraResult | null;
+      azure?: AzureResult | null;
 
     };
   
@@ -52,7 +74,23 @@ type AssessmentResult = {
       | "low_accuracy"
       | "weak_first_sound"
       | "wrong_letter"
+      | "rule_not_matched"
       | null;
+
+    feedback?: {
+      rule: string;
+      message: string;
+    };
+
+    conditionEvaluation?: {
+      target: string;
+      azureAccuracy: number;
+      azureRecognized: string;
+      iqraPhonemes: string[];
+      matchedRule: string;
+      message: string;
+      conditions: string[];
+    };
   };
 
 
@@ -80,13 +118,16 @@ export default function LearnPronunciationPage() {
 
 
   const [masaarResult, setMasaarResult] =
-    useState<any>(null);
+    useState<MasaarResult | null>(null);
   
-  const [iqraResult, setIqraResult] =   // ⬅️ أضف دي
-    useState<any>(null);
+  const [iqraResult, setIqraResult] =
+    useState<IqraResult | null>(null);
 
-const [azureResult, setAzureResult] =   // ⬅️ أضف دي
-    useState<any>(null);
+  const [azureResult, setAzureResult] =
+    useState<AzureResult | null>(null);
+
+  const [conditionResult, setConditionResult] =
+    useState<NonNullable<AssessmentResult["conditionEvaluation"]> | null>(null);
 
 
   const [status, setStatus] =
@@ -235,6 +276,7 @@ const [azureResult, setAzureResult] =   // ⬅️ أضف دي
     setMasaarResult(null);
     setIqraResult(null); 
     setAzureResult(null);   // ⬅️ أضف دي  // ⬅️ أضف دي بجانبها في كل الأربع أماكن
+    setConditionResult(null);
 
     setStatus("");
 
@@ -272,6 +314,7 @@ const [azureResult, setAzureResult] =   // ⬅️ أضف دي
 
     setScores(null);
     setAzureResult(null);   // ⬅️ أضف دي
+    setConditionResult(null);
 
     setMasaarResult(null);
     setIqraResult(null); 
@@ -372,6 +415,7 @@ const [azureResult, setAzureResult] =   // ⬅️ أضف دي
       setScores(null);
     
       setAzureResult(null);   // ⬅️ أضف دي
+      setConditionResult(null);
       setMasaarResult(null);
       setIqraResult(null); 
 
@@ -512,13 +556,16 @@ const [azureResult, setAzureResult] =   // ⬅️ أضف دي
 
             console.log("FULL ASSESSMENT:", assessment);
             setMasaarResult(
-            assessment.details?.masaar
+            assessment.details?.masaar ?? null
             );
             setIqraResult(              // ⬅️ أضف دي
-            assessment.details?.iqra
+            assessment.details?.iqra ?? null
             );
             setAzureResult(              // ⬅️ أضف دي
-            assessment.details?.azure
+            assessment.details?.azure ?? null
+            );
+            setConditionResult(
+              assessment.conditionEvaluation ?? null
             );
 
 
@@ -530,7 +577,7 @@ const [azureResult, setAzureResult] =   // ⬅️ أضف دي
             ) {
 
               setStatus(
-                "✅ ممتاز!"
+                assessment.feedback?.message ?? "✅ ممتاز!"
               );
 
 
@@ -542,7 +589,7 @@ const [azureResult, setAzureResult] =   // ⬅️ أضف دي
             } else {
 
               setStatus(
-                "🟡 حاول مرة أخرى"
+                assessment.feedback?.message ?? "🟡 حاول مرة أخرى"
               );
 
 
@@ -595,7 +642,7 @@ const [azureResult, setAzureResult] =   // ⬅️ أضف دي
           }
 
         },
-        2500
+        1800
       );
 
 
@@ -620,6 +667,7 @@ const [azureResult, setAzureResult] =   // ⬅️ أضف دي
 
     setScores(null);
     setAzureResult(null);   // ⬅️ أضف دي
+    setConditionResult(null);
 
     setMasaarResult(null);
     setIqraResult(null); 
@@ -795,112 +843,42 @@ const [azureResult, setAzureResult] =   // ⬅️ أضف دي
 
 
 
-        {masaarResult && (
-
-          <div className="mx-auto mt-6 max-w-md rounded-2xl border p-6 text-right">
-
-
-            <h2 className="text-xl font-bold">
-              🤖 MASAAR AI
-            </h2>
-
-
-            <p className="mt-3 text-2xl font-bold">
-
-              {masaarResult.letter}
-
-            </p>
-
-
-            <p>
-
-              Confidence:
-              {" "}
-
-              {Math.round(
-                masaarResult.confidence * 100
-              )}
-
-              %
-
-            </p>
-
-
-
-            <div className="mt-4">
-
-              <p className="font-bold">
-                Top 3:
-              </p>
-
-
-              {masaarResult.top3?.map(
-                (item:any)=> (
-
-                <div key={item.label}>
-
-                  {item.letter}
-
-                  {" - "}
-
-                  {Math.round(
-                    item.confidence * 100
-                  )}
-
-                  %
-
-                </div>
-
-              ))}
-
-
+        {scores && (
+          <div className="mx-auto mt-6 grid max-w-2xl gap-4 text-right md:grid-cols-2" dir="rtl">
+            <div className="rounded-2xl border p-5">
+              <h2 className="text-lg font-bold">☁️ Azure Speech</h2>
+              <p className="mt-2 text-2xl font-bold">{azureResult?.recognized || "لا توجد نتيجة"}</p>
+              <p>الدقة: {azureResult?.accuracy ?? "—"}%</p>
             </div>
-
-
+            <div className="rounded-2xl border p-5">
+              <h2 className="text-lg font-bold">🤖 MASAAR AI</h2>
+              {masaarResult ? <>
+                <p className="mt-2 text-2xl font-bold">{masaarResult.letter ?? "—"}</p>
+                <p>الثقة: {typeof masaarResult.confidence === "number" ? `${Math.round(masaarResult.confidence * 100)}%` : "—"}</p>
+                {masaarResult.top3?.length ? <p className="mt-2 text-sm">أفضل النتائج: {masaarResult.top3.map((item) => `${item.letter ?? item.label ?? "—"} (${typeof item.confidence === "number" ? Math.round(item.confidence * 100) : item.score ?? "—"}%)`).join("، ")}</p> : null}
+              </> : <p className="mt-2 text-muted-foreground">الخدمة غير متاحة لهذه المحاولة</p>}
+            </div>
+            <div className="rounded-2xl border p-5 md:col-span-2">
+              <h2 className="text-lg font-bold">🕌 IQRA Phoneme Model</h2>
+              {iqraResult ? <>
+                {iqraResult.sequence ? <p className="mt-2 font-mono" dir="ltr">{iqraResult.sequence}</p> : null}
+                <div className="mt-3 flex flex-wrap gap-2" dir="ltr">{iqraResult.phonemes?.length ? iqraResult.phonemes.map((phoneme, index) => <span key={`${phoneme}-${index}`} className="rounded-lg bg-muted px-3 py-1 font-mono">{phoneme}</span>) : "—"}</div>
+              </> : <p className="mt-2 text-muted-foreground">الخدمة غير متاحة لهذه المحاولة</p>}
+            </div>
           </div>
-
         )}
-        {iqraResult && (
-  <div className="mx-auto mt-6 max-w-md rounded-2xl border p-6 text-right">
-    <h2 className="text-xl font-bold">
-      🕌 IQRA Phoneme Model
-    </h2>
 
-    <p className="mt-3 text-lg" dir="ltr">
-      {iqraResult.sequence}
-    </p>
-
-    <div className="mt-4 flex flex-wrap justify-end gap-2">
-      {iqraResult.phonemes?.map(
-        (p: string, i: number) => (
-          <span
-            key={i}
-            className="rounded-lg bg-muted px-3 py-1 font-mono"
-          >
-            {p}
-          </span>
-        )
-      )}
-    </div>
-  </div>
-)}
-{azureResult && (
-  <div className="mx-auto mt-6 max-w-md rounded-2xl border p-6 text-right">
-
-    <h2 className="text-xl font-bold">
-      ☁️ Azure Speech
-    </h2>
-
-    <p className="mt-3 text-2xl font-bold">
-      {azureResult.recognized || "—"}
-    </p>
-
-    <p>
-      الدقة (Accuracy):{" "}
-      {azureResult.accuracy ?? "—"}
-      %
-    </p>
-
+{conditionResult && (
+  <div className="mx-auto mt-6 max-w-md rounded-2xl border border-primary/30 bg-primary/5 p-6 text-right" dir="rtl">
+    <h2 className="text-xl font-bold">⚙️ نتيجة شروط التقييم</h2>
+    <p className="mt-3 text-lg font-bold">{conditionResult.message}</p>
+    <dl className="mt-4 space-y-2 text-sm">
+      <div className="flex justify-between gap-4"><dt>القاعدة المطابقة</dt><dd dir="ltr" className="font-mono">{conditionResult.matchedRule}</dd></div>
+      <div className="flex justify-between gap-4"><dt>الحرف المطلوب</dt><dd>{conditionResult.target}</dd></div>
+      <div className="flex justify-between gap-4"><dt>Azure</dt><dd>{conditionResult.azureRecognized || "—"} · {conditionResult.azureAccuracy}%</dd></div>
+      <div className="flex justify-between gap-4"><dt>IQRA phonemes</dt><dd dir="ltr" className="font-mono">{conditionResult.iqraPhonemes.join(" ") || "—"}</dd></div>
+    </dl>
+    <p className="mt-4 border-t pt-3 text-sm text-muted-foreground">الشروط المستخدمة: {conditionResult.conditions.length ? conditionResult.conditions.join(" • ") : "لم تطابق أي قاعدة"}</p>
   </div>
 )}
 

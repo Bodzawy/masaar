@@ -3,6 +3,9 @@ import * as SpeechSDK from "microsoft-cognitiveservices-speech-sdk";
 import {
   ARABIC_LETTERS,
 } from "@/lib/pronunciation/letters";
+import {
+  evaluateLetterConditions,
+} from "@/lib/pronunciation/condition-engine";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -22,6 +25,7 @@ const MIN_FIRST_SOUND_SCORE = 55;
 */
 
 const WRONG_LETTER_MARGIN = 8;
+const LOCAL_MODEL_TIMEOUT_MS = 8_000;
 
 const allowedTargets = new Set(
   ARABIC_LETTERS.map(
@@ -465,6 +469,113 @@ function discriminationScore(
   );
 }
 
+type MasaarResult = {
+  letter?: string;
+  confidence?: number;
+  top3?: Array<{
+    label?: string;
+    letter?: string;
+    confidence?: number;
+  }>;
+};
+
+type IqraResult = {
+  sequence?: string;
+  phonemes?: string[];
+  duration?: number;
+};
+
+async function postAudioToModel(
+  service: "MASAAR" | "IQRA",
+  baseUrl: string | undefined,
+  audioBuffer: Buffer
+): Promise<unknown | null> {
+  if (!baseUrl) {
+    console.warn(`${service} URL is not configured.`);
+    return null;
+  }
+
+  const controller = new AbortController();
+  const timeout = setTimeout(
+    () => controller.abort(),
+    LOCAL_MODEL_TIMEOUT_MS
+  );
+
+  try {
+    const formData = new FormData();
+    formData.append(
+      "audio",
+      new Blob([new Uint8Array(audioBuffer)]),
+      "voice.wav"
+    );
+
+    const internalApiKey = process.env.INTERNAL_API_KEY;
+
+    const response = await fetch(`${baseUrl}/predict`, {
+      method: "POST",
+      body: formData,
+      signal: controller.signal,
+      // Only sent when INTERNAL_API_KEY is configured (production). MASAAR
+      // and IQRA ignore this header entirely when they have no key of their
+      // own to compare it against, so local development is unaffected.
+      headers: internalApiKey
+        ? { "X-Internal-Api-Key": internalApiKey }
+        : undefined,
+    });
+
+    if (!response.ok) {
+      console.error(`${service} returned ${response.status}.`);
+      return null;
+    }
+
+    return await response.json();
+  } catch (error) {
+    const reason = error instanceof Error && error.name === "AbortError"
+      ? `timed out after ${LOCAL_MODEL_TIMEOUT_MS / 1000} seconds`
+      : error;
+    console.error(`${service} ERROR:`, reason);
+    return null;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+async function assessMasaar(
+  audioBuffer: Buffer
+): Promise<MasaarResult | null> {
+  const result = await postAudioToModel(
+    "MASAAR",
+    process.env.MASAAR_URL,
+    audioBuffer
+  );
+
+  if (!result || typeof result !== "object") return null;
+  const data = result as MasaarResult & { ok?: boolean };
+  return data.ok === false ? null : data;
+}
+
+async function assessIqra(
+  audioBuffer: Buffer
+): Promise<IqraResult | null> {
+  const result = await postAudioToModel(
+    "IQRA",
+    process.env.IQRA_URL,
+    audioBuffer
+  );
+
+  if (!result || typeof result !== "object") return null;
+  const data = result as IqraResult & { ok?: boolean };
+  if (data.ok === false) return null;
+
+  return {
+    sequence: data.sequence,
+    phonemes: Array.isArray(data.phonemes)
+      ? data.phonemes.filter((phoneme): phoneme is string => typeof phoneme === "string")
+      : [],
+    duration: data.duration,
+  };
+}
+
 export async function POST(
   request: Request
 ) {
@@ -531,102 +642,13 @@ export async function POST(
         await audio.arrayBuffer()
       );
 
-      // ==========================
-      // MASAAR
-      // ==========================
-      let masaar: any = null;
-
-      try {
-        const masaarForm = new FormData();
-
-        masaarForm.append(
-          "audio",
-          new Blob([audioBuffer]),
-          "voice.wav"
-        );
-
-        console.log("CALLING MASAAR...");
-
-        const masaarResponse = await fetch(
-          "http://127.0.0.1:5001/predict",
-          {
-            method: "POST",
-            body: masaarForm,
-          }
-        );
-
-        console.log(
-          "MASAAR STATUS:",
-          masaarResponse.status
-        );
-
-        const text = await masaarResponse.text();
-
-        console.log("MASAAR RAW:", text);
-
-        masaar = JSON.parse(text);
-      } catch (error) {
-        console.error("MASAAR ERROR:", error);
-      }
-
-      console.log("FINAL MASAAR RESULT:", masaar);
-
-      // ==========================
-      // IQRA
-      // ==========================
-      let iqra: any = null;
-
-      try {
-        const iqraForm = new FormData();
-
-        iqraForm.append(
-          "audio",
-          new Blob([audioBuffer]),
-          "voice.wav"
-        );
-
-        console.log("CALLING IQRA...");
-
-        const iqraResponse = await fetch(
-            "http://127.0.0.1:5002/predict",
-          {
-            method: "POST",
-            body: iqraForm,
-          }
-        );
-
-        console.log("IQRA STATUS:", iqraResponse.status);
-
-        const iqraText = await iqraResponse.text();
-
-        console.log("IQRA RAW:", iqraText);
-
-        const iqraJson = JSON.parse(iqraText);
-
-        if (iqraJson.ok === false) {
-          console.error("IQRA MODEL ERROR:", iqraJson.error);
-          iqra = null;
-        } else {
-          iqra = {
-            sequence: iqraJson.sequence,
-            phonemes: iqraJson.phonemes, // array of strings زي ["f","aa","<"]
-            duration: iqraJson.duration,
-          };
-        }
-      } catch (error) {
-        console.error("IQRA ERROR:", error);
-      }
-
-      console.log("FINAL IQRA RESULT:", iqra);
-
-    
-    const primary =
-      await assessAudio(
-        audioBuffer,
-        target,
-        key,
-        region
-      );
+    // Start all independent evaluations together. Previously Masaar and Iqra
+    // finished before Azure even started, making the user wait for their sum.
+    const [masaar, iqra, primary] = await Promise.all([
+      assessMasaar(audioBuffer),
+      assessIqra(audioBuffer),
+      assessAudio(audioBuffer, target, key, region),
+    ]);
 
     if (
       primary.accuracy === null ||
@@ -643,67 +665,10 @@ export async function POST(
       );
     }
 
-    const alternatives =
-      CONFUSION_REFERENCES[target] ??
-      [];
-
-    const alternativeResults =
-      await Promise.all(
-        alternatives.map(
-          (alternative) =>
-            assessAudio(
-              audioBuffer,
-              alternative,
-              key,
-              region
-            )
-        )
-      );
-
     const targetScore =
       discriminationScore(
         primary
       );
-
-    const scoredAlternatives =
-      alternativeResults
-        .map((result) => ({
-          result,
-
-          score:
-            discriminationScore(
-              result
-            ),
-        }))
-        .filter(
-          (
-            item
-          ): item is {
-            result: AssessmentResult;
-            score: number;
-          } =>
-            typeof item.score ===
-            "number"
-        );
-
-    scoredAlternatives.sort(
-      (a, b) =>
-        b.score - a.score
-    );
-
-    const bestAlternative =
-      scoredAlternatives[0];
-
-    const alternativeScore =
-      bestAlternative?.score ??
-      null;
-
-    const margin =
-      targetScore !== null &&
-      alternativeScore !== null
-        ? targetScore -
-          alternativeScore
-        : null;
 
     const accuracyPassed =
       primary.accuracy >=
@@ -715,29 +680,17 @@ export async function POST(
       primary.firstSoundScore >=
         MIN_FIRST_SOUND_SCORE;
 
-    /*
-      أهم تعديل:
-
-      لو المنافس قريب فقط،
-      لا نرفض الطالب.
-
-      نرفض فقط لو المنافس نفسه
-      متفوق على المطلوب بفارق واضح.
-    */
-    const clearlyWrongLetter =
-      margin !== null &&
-      margin <=
-        -WRONG_LETTER_MARGIN;
-
-    const passed =
+    const legacyPassed =
       accuracyPassed &&
-      firstSoundPassed &&
-      !clearlyWrongLetter;
+      firstSoundPassed;
+
+    let passed = legacyPassed;
 
     let failureReason:
       | "low_accuracy"
       | "weak_first_sound"
       | "wrong_letter"
+      | "rule_not_matched"
       | null = null;
 
     if (!accuracyPassed) {
@@ -748,12 +701,38 @@ export async function POST(
     ) {
       failureReason =
         "weak_first_sound";
-    } else if (
-      clearlyWrongLetter
-    ) {
-      failureReason =
-        "wrong_letter";
     }
+
+    const feedback =
+      evaluateLetterConditions({
+        target,
+        azureAccuracy: primary.accuracy,
+        azureRecognized: primary.recognized,
+        iqraPhonemes:
+          iqra?.phonemes ?? [],
+      });
+
+    if (feedback) {
+      // The conditions file, not the legacy score alone, decides whether this
+      // attempt passes. Only an explicit "excellent" rule is a pass.
+      passed = feedback.rule === "excellent";
+
+      if (!passed && failureReason === null) {
+        failureReason = "rule_not_matched";
+      }
+    } else {
+      // Never report success when the data required by a rule is unavailable.
+      passed = false;
+      failureReason = "rule_not_matched";
+    }
+
+    const resolvedFeedback =
+      feedback ?? {
+        rule: "no_matching_rule",
+        message: iqra?.phonemes?.length
+          ? "لم تنطبق شروط تقييم هذا الحرف. حاول مرة أخرى."
+          : "تعذر تحليل أصوات النطق. حاول مرة أخرى بعد التأكد من اتصال IQRA.",
+      };
 
     console.log(
       "ARABIC LETTER ASSESSMENT:",
@@ -768,19 +747,25 @@ export async function POST(
 
         targetScore,
 
-        closestAlternative:
-          bestAlternative
-            ?.result
-            .referenceText ??
-          null,
-
-        alternativeScore,
-
-        margin,
+        closestAlternative: null,
+        alternativeScore: null,
+        margin: null,
 
         passed,
 
         failureReason,
+
+        feedback: resolvedFeedback,
+
+        conditionEvaluation: {
+          target,
+          azureAccuracy: primary.accuracy,
+          azureRecognized: primary.recognized,
+          iqraPhonemes: iqra?.phonemes ?? [],
+          matchedRule: resolvedFeedback.rule,
+          message: resolvedFeedback.message,
+          conditions: feedback?.conditions ?? [],
+        },
       }
     );
 
@@ -824,6 +809,16 @@ export async function POST(
       
           iqra,
         },
+
+        conditionEvaluation: {
+          target,
+          azureAccuracy: primary.accuracy,
+          azureRecognized: primary.recognized,
+          iqraPhonemes: iqra?.phonemes ?? [],
+          matchedRule: resolvedFeedback.rule,
+          message: resolvedFeedback.message,
+          conditions: feedback?.conditions ?? [],
+        },
       
         discrimination: {
           targetScore,
@@ -831,15 +826,9 @@ export async function POST(
           firstSoundScore:
             primary.firstSoundScore,
       
-          closestAlternative:
-            bestAlternative
-              ?.result
-              .referenceText ??
-            null,
-      
-          alternativeScore,
-      
-          margin,
+          closestAlternative: null,
+          alternativeScore: null,
+          margin: null,
         },
       
         words:
