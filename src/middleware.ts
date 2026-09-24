@@ -1,9 +1,16 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { verifySessionToken, SESSION_COOKIE_NAME } from "@/lib/auth";
 import { routeAccess, homeForRole } from "@/lib/routing";
+import { isTrainerHost } from "@/lib/trainer/host";
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
+
+  // The standalone trainer host never exposes the Masaar app or its login.
+  if (isTrainerHost(req.headers.get("host"))) {
+    return NextResponse.rewrite(new URL("/trainer", req.url));
+  }
+
   const token = req.cookies.get(SESSION_COOKIE_NAME)?.value;
   const session = await verifySessionToken(token);
 
