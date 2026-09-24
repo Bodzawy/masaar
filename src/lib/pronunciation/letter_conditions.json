@@ -17,7 +17,8 @@
     "باء": {
       "excellent": {
         "conditions": [
-          "azure_accuracy >= 70"
+          "azure_accuracy >= 70",
+          "iqra_phonemes contains b"
         ],
         "message": "ممتاز 👏 نطقت حرف الباء بشكل صحيح"
       },
@@ -32,7 +33,8 @@
     "تاء": {
       "excellent": {
         "conditions": [
-          "azure_accuracy >= 70"
+          "azure_accuracy >= 70",
+          "iqra_phonemes contains t"
         ],
         "message": "ممتاز 👏 نطقت حرف التاء بشكل صحيح"
       },
@@ -210,7 +212,8 @@
     "راء": {
       "excellent": {
         "conditions": [
-          "azure_accuracy >= 70"
+          "azure_accuracy >= 70",
+          "iqra_phonemes contains r"
         ],
         "message": "ممتاز 👏 نطقت حرف الراء بشكل صحيح"
       },
@@ -227,7 +230,8 @@
     "زاي": {
       "excellent": {
         "conditions": [
-          "azure_accuracy >= 70"
+          "azure_accuracy >= 70",
+            "iqra_phonemes contains z"
         ],
         "message": "ممتاز 👏 نطقت حرف الزاي بشكل صحيح"
       },
@@ -244,7 +248,8 @@
     "سين": {
       "excellent": {
         "conditions": [
-          "azure_accuracy >= 70"
+          "azure_accuracy >= 70",
+          "iqra_phonemes contains s"
         ],
         "message": "ممتاز 👏 نطقت حرف السين بشكل صحيح"
       },
@@ -261,9 +266,11 @@
     "شين": {
       "excellent": {
         "conditions": [
-          "azure_accuracy >= 70"
+          "azure_accuracy >= 70",
+          "iqra_phonemes contains $"
         ],
         "message": "ممتاز 👏 نطقت حرف الشين بشكل صحيح"
+        
       },
   
       "wrong": {
@@ -518,7 +525,8 @@
     "لام": {
       "excellent": {
         "conditions": [
-          "azure_accuracy >= 70"
+          "azure_accuracy >= 70",
+          "iqra_phonemes contains l"
         ],
         "message": "ممتاز 👏 نطقت حرف اللام بشكل صحيح"
       },
@@ -535,7 +543,8 @@
     "ميم": {
       "excellent": {
         "conditions": [
-          "azure_accuracy >= 70"
+          "azure_accuracy >= 70",
+            "iqra_phonemes contains m"
         ],
         "message": "ممتاز 👏 نطقت حرف الميم بشكل صحيح"
       },
@@ -552,7 +561,8 @@
     "نون": {
       "excellent": {
         "conditions": [
-          "azure_accuracy >= 70"
+          "azure_accuracy >= 70",
+          "iqra_phonemes contains n"
         ],
         "message": "ممتاز 👏 نطقت حرف النون بشكل صحيح"
       },
@@ -595,7 +605,8 @@
     "واو": {
       "excellent": {
         "conditions": [
-          "azure_accuracy >= 70"
+          "azure_accuracy >= 70",
+          "iqra_phonemes contains w"
         ],
         "message": "ممتاز 👏 نطقت حرف الواو بشكل صحيح"
       },
@@ -612,7 +623,8 @@
     "ياء": {
       "excellent": {
         "conditions": [
-          "azure_accuracy >= 70"
+          "azure_accuracy >= 70",
+          "iqra_phonemes contains y"
         ],
         "message": "ممتاز 👏 نطقت حرف الياء بشكل صحيح"
       },
