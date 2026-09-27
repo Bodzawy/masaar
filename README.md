@@ -1,6 +1,6 @@
-# Masaar – Arabisch lernen online
+# Arabic Lang. Int. Found. (Alif) – Arabisch lernen online
 
-**Masaar** (arabisch مسار, „der Weg") ist eine produktionsreife Lernplattform, auf der **Deutschsprachige Arabisch lernen** – von den ersten Buchstaben (A1) bis zu beinahe muttersprachlicher Beherrschung (C2). Die Plattform kombiniert einen strukturierten, datenbankgetriebenen Lernpfad mit Live-Einzelunterricht, Prüfungen, Zertifikaten und einer vollständigen Verwaltungs- und Moderationsseite.
+**Arabic Lang. Int. Found. (Alif)** (arabisch أَلِف) ist eine produktionsreife Lernplattform, auf der **Deutschsprachige Arabisch lernen** – von den ersten Buchstaben (A1) bis zu beinahe muttersprachlicher Beherrschung (C2). Die Plattform kombiniert einen strukturierten, datenbankgetriebenen Lernpfad mit Live-Einzelunterricht, Prüfungen, Zertifikaten und einer vollständigen Verwaltungs- und Moderationsseite.
 
 > **Produktkern:** Die Plattform besitzt die Lernfolge. Lehrkräfte unterrichten genau die Lektion, die der Lernweg vorgibt – sie entscheiden nicht, was als Nächstes gelernt wird.
 

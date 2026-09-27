@@ -4,7 +4,7 @@ import { brand } from "@/config/brand";
 export default function manifest(): MetadataRoute.Manifest {
   return {
     name: `${brand.name} – Arabisch lernen online`,
-    short_name: brand.name,
+    short_name: brand.shortName,
     description: "Strukturierter Arabischkurs A1–C2 mit Live-Lehrkräften.",
     start_url: "/",
     display: "standalone",

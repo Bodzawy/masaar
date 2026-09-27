@@ -28,8 +28,8 @@ export default async function LandingPage() {
         <div className="container flex h-16 items-center justify-between">
           <div className="flex items-center gap-2.5">
             <BrandMark />
-            <span className="text-lg font-semibold tracking-tight">{brand.name}</span>
-            <span className="font-arabic text-sm text-muted-foreground" lang="ar" aria-hidden>مسار</span>
+            <span className="text-lg font-semibold tracking-tight">{brand.shortName}</span>
+            <span className="font-arabic text-sm text-muted-foreground" lang="ar" aria-hidden>أَلِف</span>
           </div>
           <nav className="flex items-center gap-2 sm:gap-3">
             <div className="hidden sm:block">

@@ -3,7 +3,7 @@ import type { Dict } from "./de";
 // Sekundäre UI-Sprache: Englisch (Spiegelt alle Schlüssel des deutschen Wörterbuchs).
 export const en: Dict = {
   common: {
-    brand: "Masaar",
+    brand: "Alif",
     tagline: "Your structured path into Arabic",
     signIn: "Sign in",
     signOut: "Sign out",
@@ -211,7 +211,7 @@ export const en: Dict = {
   },
   rating: {
     title: "How was your lesson?",
-    subtitle: "Your feedback keeps teaching quality high at Masaar.",
+    subtitle: "Your feedback keeps teaching quality high at Alif.",
     explanation: "Explanation quality",
     languageClarity: "Language clarity",
     punctuality: "Punctuality",

@@ -33,7 +33,7 @@ export const metadata: Metadata = {
         url:
           "data:image/svg+xml," +
           encodeURIComponent(
-            `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='#4338CA'/><text x='16' y='23' text-anchor='middle' font-size='18' font-family='serif' fill='#F59E0B'>م</text></svg>`
+            `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='#4338CA'/><text x='16' y='23' text-anchor='middle' font-size='18' font-family='serif' fill='#F59E0B'>ا</text></svg>`
           ),
         type: "image/svg+xml",
       },

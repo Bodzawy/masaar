@@ -113,7 +113,7 @@ export function Classroom({
       <header className="flex flex-wrap items-center gap-3 border-b border-white/10 px-4 py-3">
         <div className="min-w-0">
           <p className="truncate text-sm font-semibold">{lessonTitle}</p>
-          <p className="text-xs text-white/60">{role === "TEACHER" ? "Unterrichtet" : "Lernt gerade"} · Masaar Live</p>
+          <p className="text-xs text-white/60">{role === "TEACHER" ? "Unterrichtet" : "Lernt gerade"} · Alif Live</p>
         </div>
         <div className="ms-auto flex flex-wrap items-center gap-2.5 text-xs">
           <span className="flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5 font-mono tabular-nums" aria-label={`Elapsed time ${mmss}`}>

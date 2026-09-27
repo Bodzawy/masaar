@@ -102,7 +102,7 @@ async function completeOnboarding(req: Request): Promise<NextResponse> {
     }
 
     await tx.notification.create({
-      data: { userId: session.userId, type: "system", titleKey: "Willkommen bei Masaar – dein Lernweg wartet!", link: "/student/learning-path" },
+      data: { userId: session.userId, type: "system", titleKey: "Willkommen bei Alif – dein Lernweg wartet!", link: "/student/learning-path" },
     });
     for (const skill of ["READING", "LISTENING", "WRITING", "SPEAKING", "GRAMMAR", "VOCABULARY"] as const) {
       await tx.skillScore.upsert({

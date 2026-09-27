@@ -1,7 +1,7 @@
 // Primäres UI-Wörterbuch: Deutsch. Definiert den Dict-Typ für alle Sprachen.
 export const de = {
   common: {
-    brand: "Masaar",
+    brand: "Alif",
     tagline: "Dein strukturierter Weg zum Arabischen",
     signIn: "Anmelden",
     signOut: "Abmelden",
@@ -210,7 +210,7 @@ export const de = {
   },
   rating: {
     title: "Wie war deine Unterrichtsstunde?",
-    subtitle: "Dein Feedback hält die Unterrichtsqualität bei Masaar hoch.",
+    subtitle: "Dein Feedback hält die Unterrichtsqualität bei Alif hoch.",
     explanation: "Qualität der Erklärung",
     languageClarity: "Sprachliche Klarheit",
     punctuality: "Pünktlichkeit",

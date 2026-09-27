@@ -115,7 +115,7 @@ export default async function StudentDashboard() {
     return (
       <div className="container max-w-2xl py-16 text-center">
         <GraduationCap className="mx-auto h-12 w-12 text-muted-foreground" aria-hidden />
-        <h1 className="mt-4 text-xl font-semibold">Willkommen bei Masaar</h1>
+        <h1 className="mt-4 text-xl font-semibold">Willkommen bei Alif</h1>
         <p className="mt-2 text-muted-foreground">Schließe das Onboarding ab, um zu starten.</p>
         <Button className="mt-6" asChild><Link href="/onboarding">Onboarding starten</Link></Button>
       </div>

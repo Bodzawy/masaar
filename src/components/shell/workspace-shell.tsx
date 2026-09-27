@@ -29,7 +29,7 @@ export async function WorkspaceShell({
       <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col border-e border-border bg-card lg:flex">
         <div className="flex h-16 items-center gap-2.5 border-b border-border px-5">
           <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground" aria-hidden>D</span>
-          <Link href="/" className="font-semibold tracking-tight">{brand.name}</Link>
+          <Link href="/" className="font-semibold tracking-tight">{brand.shortName}</Link>
         </div>
         <WorkspaceNav items={items} dict={dict} unreadCount={unreadCount} />
         <div className="mt-auto space-y-3 border-t border-border p-4">
@@ -61,7 +61,7 @@ export async function WorkspaceShell({
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="sticky top-0 z-40 flex h-14 items-center gap-3 border-b border-border bg-card/90 px-4 backdrop-blur lg:hidden">
           <MobileNav items={items} dict={dict} userName={userName} unreadCount={unreadCount} />
-          <Link href="#" className="font-semibold">{brand.name}</Link>
+          <Link href="#" className="font-semibold">{brand.shortName}</Link>
           <div className="ms-auto"><LanguageSwitcher current={locale} /></div>
         </header>
         <main className="min-w-0 flex-1 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">{children}</main>

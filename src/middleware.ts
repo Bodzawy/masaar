@@ -6,7 +6,7 @@ import { isTrainerHost } from "@/lib/trainer/host";
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // The standalone trainer host never exposes the Masaar app or its login.
+  // The standalone trainer host never exposes the Alif app or its login.
   if (isTrainerHost(req.headers.get("host"))) {
     return NextResponse.rewrite(new URL("/trainer", req.url));
   }

@@ -32,7 +32,7 @@ interface LessonSpec {
 interface ChapterSpec { title: string; titleDe: string; description: string; lessons: LessonSpec[] }
 
 async function main() {
-  console.log("Seeding Masaar – Arabisch lernen für Deutschsprachige…");
+  console.log("Seeding Alif – Arabisch lernen für Deutschsprachige…");
   await wipe();
 
   // ── RBAC ───────────────────────────────────────────────────────────────────
